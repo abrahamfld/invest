@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuantumYield - AI Crypto Trading</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <!-- TradingView Lightweight Charts -->
+    <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#6E44FF',
+                        secondary: '#B892FF',
+                        accent: '#FF44B4',
+                        dark: '#0F0A1E',
+                        light: '#F5F0FF',
+                        success: '#00E676',
+                        danger: '#FF5252',
+                        warning: '#FFAB00',
+                        info: '#00B0FF',
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'pulse-slow': 'pulse 6s ease-in-out infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        .gradient-text {
+            background: linear-gradient(90deg, #6E44FF 0%, #FF44B4 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(110, 68, 255, 0.1), 0 10px 10px -5px rgba(110, 68, 255, 0.04);
+        }
+        
+        .nav-link {
+            position: relative;
+        }
+        .nav-link:after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -2px;
+            left: 0;
+            background-color: #6E44FF;
+            transition: width 0.3s ease;
+        }
+        .nav-link:hover:after {
+            width: 100%;
+        }
+        
+        #tradingview-chart {
+            height: 400px;
+            width: 100%;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        .trade-win {
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { background-color: rgba(0, 230, 118, 0.1); }
+            50% { background-color: rgba(0, 230, 118, 0.2); }
+        }
+        
+        .trade-loss {
+            animation: pulseDanger 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulseDanger {
+            0%, 100% { background-color: rgba(255, 82, 82, 0.1); }
+            50% { background-color: rgba(255, 82, 82, 0.2); }
+        }
+    </style>
+</head>
+<body class="bg-dark text-light font-sans antialiased overflow-x-hidden">
+    <!-- Animated Background Elements -->
+    <div class="fixed inset-0 overflow-hidden -z-10">
+        <div class="absolute top-1/4 left-1/4 w-64 h-64 rounded-full bg-primary opacity-10 blur-3xl animate-float"></div>
+        <div class="absolute top-3/4 right-1/4 w-80 h-80 rounded-full bg-accent opacity-10 blur-3xl animate-float" style="animation-delay: 2s;"></div>
+        <div class="absolute bottom-1/4 left-1/2 w-96 h-96 rounded-full bg-secondary opacity-10 blur-3xl animate-float" style="animation-delay: 4s;"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="container mx-auto px-6 py-4">
+        <div class="flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <div class="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
+                    <i class="fas fa-robot text-white text-xl"></i>
+                </div>
+                <span class="text-xl font-bold">Quantum<span class="gradient-text">Yield</span></span>
+            </div>
+            
+            <div class="hidden md:flex items-center space-x-6">
+                <a href="#" class="nav-link px-3 py-2 flex items-center">
+                    <i class="fas fa-wallet mr-2"></i> My Portfolio
+                </a>
+                <a href="#" class="nav-link px-3 py-2 flex items-center">
+                    <i class="fas fa-chart-line mr-2"></i> Market Data
+                </a>
+                <a href="#" class="nav-link px-3 py-2 flex items-center">
+                    <i class="fas fa-robot mr-2"></i> AI Trading
+                </a>
+                <a href="#" class="nav-link px-3 py-2 flex items-center">
+                    <i class="fas fa-user mr-2"></i> Account
+                </a>
+                <a href="#" class="ml-4 px-4 py-2 bg-gradient-to-r from-primary to-accent rounded-full font-medium hover:opacity-90 transition flex items-center">
+                    <i class="fas fa-sign-out-alt mr-2"></i> Logout
+                </a>
+            </div>
+            
+            <button class="md:hidden text-2xl focus:outline-none">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-6 py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Left Column -->
+            <div class="lg:col-span-2 space-y-8">
+                <!-- Portfolio Summary -->
+                <div class="bg-gradient-to-b from-[#1A1438] to-dark border border-gray-800 rounded-2xl p-6 animate__animated animate__fadeIn">
+                    <h2 class="text-2xl font-bold mb-6 flex items-center">
+                        <i class="fas fa-wallet mr-3 gradient-text"></i> 
+                        Portfolio Overview
+                    </h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="bg-[#1A1438] rounded-xl p-4 border border-gray-700">
+                            <p class="text-sm opacity-60 mb-1">Total Balance</p>
+                            <p class="text-2xl font-bold">$12,458.73</p>
+                            <p class="text-success text-sm mt-1">
+                                <i class="fas fa-arrow-up mr-1"></i> 12.5% today
+                            </p>
+                        </div>
+                        <div class="bg-[#1A1438] rounded-xl p-4 border border-gray-700">
+                            <p class="text-sm opacity-60 mb-1">Active Investments</p>
+                            <p class="text-2xl font-bold">$8,200.00</p>
+                            <p class="text-success text-sm mt-1">
+                                <i class="fas fa-robot mr-1"></i> 10% daily
+                            </p>
+                        </div>
+                        <div class="bg-[#1A1438] rounded-xl p-4 border border-gray-700">
+                            <p class="text-sm opacity-60 mb-1">Today's Profit</p>
+                            <p class="text-2xl font-bold">$820.00</p>
+                            <p class="text-success text-sm mt-1">
+                                <i class="fas fa-coins mr-1"></i> 32 trades
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Trading Chart -->
+                <div class="bg-gradient-to-b from-[#1A1438] to-dark border border-gray-800 rounded-2xl p-6 animate__animated animate__fadeIn">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold flex items-center">
+                            <i class="fas fa-chart-line mr-3 gradient-text"></i> 
+                            BTC/USDT Live Chart
+                        </h2>
+                        <div class="flex space-x-2">
+                            <button class="px-3 py-1 bg-gray-800 rounded-lg text-sm">1H</button>
+                            <button class="px-3 py-1 bg-primary rounded-lg text-sm">4H</button>
+                            <button class="px-3 py-1 bg-gray-800 rounded-lg text-sm">1D</button>
+                            <button class="px-3 py-1 bg-gray-800 rounded-lg text-sm">1W</button>
+                        </div>
+                    </div>
+                    <div id="tradingview-chart"></div>
+                </div>
+
+                <!-- Trading Activity -->
+                <div class="bg-gradient-to-b from-[#1A1438] to-dark border border-gray-800 rounded-2xl p-6 animate__animated animate__fadeIn">
+                    <h2 class="text-2xl font-bold mb-6 flex items-center">
+                        <i class="fas fa-bolt mr-3 gradient-text"></i> 
+                        Live Trading Activity
+                    </h2>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-700">
+                            <thead>
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Time</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Pair</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Type</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Amount</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Price</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Profit</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-700" id="trading-activity">
+                                <!-- Trading activity will be inserted here by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column -->
+            <div class="space-y-8">
+                <!-- Quick Actions -->
+                <div class="bg-gradient-to-b from-[#1A1438] to-dark border border-gray-800 rounded-2xl p-6 animate__animated animate__fadeIn">
+                    <h2 class="text-2xl font-bold mb-6 flex items-center">
+                        <i class="fas fa-rocket mr-3 gradient-text"></i> 
+                        Quick Actions
+                    </h2>
+                    <div class="space-y-4">
+                        <a href="#" class="block p-4 bg-gradient-to-r from-primary to-accent rounded-xl text-center font-bold hover:opacity-90 transition">
+                            <i class="fas fa-plus-circle mr-2"></i> Deposit Funds
+                        </a>
+                        <a href="#" class="block p-4 bg-gradient-to-r from-success to-green-500 rounded-xl text-center font-bold hover:opacity-90 transition">
+                            <i class="fas fa-hand-holding-usd mr-2"></i> Withdraw Earnings
+                        </a>
+                        <a href="#" class="block p-4 bg-gradient-to-r from-info to-blue-500 rounded-xl text-center font-bold hover:opacity-90 transition">
+                            <i class="fas fa-cog mr-2"></i> Trading Settings
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Recent Transactions -->
+                <div class="bg-gradient-to-b from-[#1A1438] to-dark border border-gray-800 rounded-2xl p-6 animate__animated animate__fadeIn">
+                    <h2 class="text-2xl font-bold mb-6 flex items-center">
+                        <i class="fas fa-exchange-alt mr-3 gradient-text"></i> 
+                        Recent Transactions
+                    </h2>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center p-3 bg-gray-800 rounded-lg">
+                            <div>
+                                <p class="font-medium">Deposit</p>
+                                <p class="text-sm opacity-60">Today, 10:45 AM</p>
+                            </div>
+                            <div class="text-success font-bold">+$2,000.00</div>
+                        </div>
+                        <div class="flex justify-between items-center p-3 bg-gray-800 rounded-lg">
+                            <div>
+                                <p class="font-medium">BTC Purchase</p>
+                                <p class="text-sm opacity-60">Today, 09:30 AM</p>
+                            </div>
+                            <div class="text-success font-bold">+$142.50</div>
+                        </div>
+                        <div class="flex justify-between items-center p-3 bg-gray-800 rounded-lg">
+                            <div>
+                                <p class="font-medium">ETH Sale</p>
+                                <p class="text-sm opacity-60">Today, 08:15 AM</p>
+                            </div>
+                            <div class="text-danger font-bold">-$87.30</div>
+                        </div>
+                        <div class="flex justify-between items-center p-3 bg-gray-800 rounded-lg">
+                            <div>
+                                <p class="font-medium">Daily Profit</p>
+                                <p class="text-sm opacity-60">Yesterday, 11:59 PM</p>
+                            </div>
+                            <div class="text-success font-bold">+$745.20</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Performance Metrics -->
+                <div class="bg-gradient-to-b from-[#1A1438] to-dark border border-gray-800 rounded-2xl p-6 animate__animated animate__fadeIn">
+                    <h2 class="text-2xl font-bold mb-6 flex items-center">
+                        <i class="fas fa-tachometer-alt mr-3 gradient-text"></i> 
+                        AI Performance
+                    </h2>
+                    <div class="space-y-4">
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span>Win Rate</span>
+                                <span class="font-bold">78.5%</span>
+                            </div>
+                            <div class="w-full bg-gray-700 rounded-full h-2">
+                                <div class="bg-success h-2 rounded-full" style="width: 78.5%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span>Daily Return</span>
+                                <span class="font-bold">10.2%</span>
+                            </div>
+                            <div class="w-full bg-gray-700 rounded-full h-2">
+                                <div class="bg-primary h-2 rounded-full" style="width: 100%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span>Risk Level</span>
+                                <span class="font-bold">Medium</span>
+                            </div>
+                            <div class="w-full bg-gray-700 rounded-full h-2">
+                                <div class="bg-warning h-2 rounded-full" style="width: 60%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-[#0A0515] border-t border-gray-800 py-12 mt-12">
+        <div class="container mx-auto px-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-12">
+                <div>
+                    <div class="flex items-center space-x-2 mb-4">
+                        <div class="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
+                            <i class="fas fa-robot text-white text-xl"></i>
+                        </div>
+                        <span class="text-xl font-bold">Quantum<span class="gradient-text">Yield</span></span>
+                    </div>
+                    <p class="opacity-60 mb-4">Advanced AI crypto trading with consistent daily returns.</p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-primary transition">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-primary transition">
+                            <i class="fab fa-telegram"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-primary transition">
+                            <i class="fab fa-discord"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Trading</h3>
+                    <ul class="space-y-3">
+                        <li><a href="#" class="opacity-60 hover:opacity-100 hover:text-primary transition">Markets</a></li>
+                        <li><a href="#" class="opacity-60 hover:opacity-100 hover:text-primary transition">Portfolio</a></li>
+                        <li><a href="#" class="opacity-60 hover:opacity-100 hover:text-primary transition">Strategies</a></li>
+                        <li><a href="#" class="opacity-60 hover:opacity-100 hover:text-primary transition">Performance</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Account</h3>
+                    <ul class="space-y-3">
+                        <li><a href="#" class="opacity-60 hover:opacity-100 hover:text-primary transition">Profile</a></li>
+                        <li><a href="#" class="opacity-60 hover:opacity-100 hover:text-primary transition">Security</a></li>
+                        <li><a href="#" class="opacity-60 hover:opacity-100 hover:text-primary transition">Transactions</a></li>
+                        <li><a href="#" class="opacity-60 hover:opacity-100 hover:text-primary transition">Settings</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Legal</h3>
+                    <ul class="space-y-3">
+                        <li><a href="#" class="opacity-60 hover:opacity-100 hover:text-primary transition">Privacy Policy</a></li>
+                        <li><a href="#" class="opacity-60 hover:opacity-100 hover:text-primary transition">Terms of Service</a></li>
+                        <li><a href="#" class="opacity-60 hover:opacity-100 hover:text-primary transition">Risk Disclosure</a></li>
+                        <li><a href="#" class="opacity-60 hover:opacity-100 hover:text-primary transition">Compliance</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
+                <p class="opacity-60 mb-4 md:mb-0">© 2023 QuantumYield. All rights reserved.</p>
+                <div class="flex space-x-6">
+                    <a href="#" class="opacity-60 hover:opacity-100 transition">Privacy</a>
+                    <a href="#" class="opacity-60 hover:opacity-100 transition">Terms</a>
+                    <a href="#" class="opacity-60 hover:opacity-100 transition">Cookies</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- TradingView Chart Script -->
+    <script>
+        // Initialize TradingView Chart
+        const chartContainer = document.getElementById('tradingview-chart');
+        const chart = LightweightCharts.createChart(chartContainer, {
+            layout: {
+                backgroundColor: '#1A1438',
+                textColor: '#F5F0FF',
+            },
+            grid: {
+                vertLines: {
+                    color: 'rgba(70, 70, 110, 0.2)',
+                },
+                horzLines: {
+                    color: 'rgba(70, 70, 110, 0.2)',
+                },
+            },
+            crosshair: {
+                mode: LightweightCharts.CrosshairMode.Normal,
+            },
+            rightPriceScale: {
+                borderColor: 'rgba(110, 68, 255, 0.2)',
+            },
+            timeScale: {
+                borderColor: 'rgba(110, 68, 255, 0.2)',
+            },
+        });
+
+        const candleSeries = chart.addCandlestickSeries({
+            upColor: '#00E676',
+            downColor: '#FF5252',
+            borderDownColor: '#FF5252',
+            borderUpColor: '#00E676',
+            wickDownColor: '#FF5252',
+            wickUpColor: '#00E676',
+        });
+
+        // Generate random candle data
+        function generateRandomCandleData(count) {
+            const result = [];
+            let time = new Date();
+            time.setUTCHours(0, 0, 0, 0);
+            time.setUTCDate(time.getUTCDate() - count);
+            
+            let previousClose = 25000 + Math.random() * 5000;
+            
+            for (let i = 0; i < count; ++i) {
+                const open = previousClose;
+                const close = open + (Math.random() - 0.5) * open * 0.02;
+                const high = Math.max(open, close) + Math.random() * open * 0.01;
+                const low = Math.min(open, close) - Math.random() * open * 0.01;
+                
+                result.push({
+                    time: time.getTime() / 1000,
+                    open,
+                    high,
+                    low,
+                    close,
+                });
+
+                // Move to next day
+                time.setUTCDate(time.getUTCDate() + 1);
+                
+                // Add some weekends
+                if (time.getUTCDay() === 6) {
+                    time.setUTCDate(time.getUTCDate() + 2);
+                }
+                
+                previousClose = close;
+            }
+            
+            return result;
+        }
+
+        const initialData = generateRandomCandleData(200);
+        candleSeries.setData(initialData);
+
+        // Update chart with new data periodically
+        setInterval(() => {
+            const lastPoint = initialData[initialData.length - 1];
+            const newTime = lastPoint.time + 86400; // Add one day
+            
+            const open = lastPoint.close;
+            const close = open + (Math.random() - 0.5) * open * 0.02;
+            const high = Math.max(open, close) + Math.random() * open * 0.01;
+            const low = Math.min(open, close) - Math.random() * open * 0.01;
+            
+            const newPoint = {
+                time: newTime,
+                open,
+                high,
+                low,
+                close,
+            };
+            
+            initialData.push(newPoint);
+            candleSeries.update(newPoint);
+            
+            // Keep only last 200 points
+            if (initialData.length > 200) {
+                initialData.shift();
+            }
+        }, 3000);
+
+        // Simulate live trading activity
+        const tradingPairs = ['BTC/USDT', 'ETH/USDT', 'SOL/USDT', 'ADA/USDT', 'DOT/USDT'];
+        const tradeTypes = ['BUY', 'SELL'];
+        
+        function generateRandomTrade() {
+            const pair = tradingPairs[Math.floor(Math.random() * tradingPairs.length)];
+            const type = tradeTypes[Math.floor(Math.random() * tradeTypes.length)];
+            const amount = (Math.random() * 5).toFixed(4);
+            const price = (20000 + Math.random() * 20000).toFixed(2);
+            const profit = (Math.random() * 200 - 40).toFixed(2);
+            const isWin = parseFloat(profit) > 0;
+            
+            const now = new Date();
+            const time = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+            
+            return {
+                time,
+                pair,
+                type,
+                amount,
+                price,
+                profit,
+                isWin
+            };
+        }
+        
+        function updateTradingActivity() {
+            const activityTable = document.getElementById('trading-activity');
+            const trade = generateRandomTrade();
+            
+            const row = document.createElement('tr');
+            row.className = trade.isWin ? 'trade-win' : 'trade-loss';
+            
+            row.innerHTML = `
+                <td class="px-4 py-3 whitespace-nowrap">${trade.time}</td>
+                <td class="px-4 py-3 whitespace-nowrap font-medium">${trade.pair}</td>
+                <td class="px-4 py-3 whitespace-nowrap ${trade.type === 'BUY' ? 'text-success' : 'text-danger'}">${trade.type}</td>
+                <td class="px-4 py-3 whitespace-nowrap">${trade.amount}</td>
+                <td class="px-4 py-3 whitespace-nowrap">$${trade.price}</td>
+                <td class="px-4 py-3 whitespace-nowrap ${trade.isWin ? 'text-success' : 'text-danger'}">${trade.profit > 0 ? '+' : ''}${trade.profit}</td>
+            `;
+            
+            activityTable.insertBefore(row, activityTable.firstChild);
+            
+            // Keep only last 10 trades
+            if (activityTable.children.length > 10) {
+                activityTable.removeChild(activityTable.lastChild);
+            }
+        }
+        
+        // Initial trades
+        for (let i = 0; i < 5; i++) {
+            updateTradingActivity();
+        }
+        
+        // Update every 3-8 seconds randomly
+        setInterval(updateTradingActivity, 3000 + Math.random() * 5000);
+
+        // Simple animation triggers
+        document.addEventListener('DOMContentLoaded', function() {
+            const animateOnScroll = (elements) => {
+                elements.forEach(element => {
+                    const elementPosition = element.getBoundingClientRect().top;
+                    const screenPosition = window.innerHeight / 1.3;
+                    
+                    if(elementPosition < screenPosition) {
+                        element.classList.add('animate__animated', 'animate__fadeInUp');
+                    }
+                });
+            };
+            
+            const animatedElements = document.querySelectorAll('.animate-on-scroll');
+            window.addEventListener('scroll', () => animateOnScroll(animatedElements));
+            animateOnScroll(animatedElements); // Run once on load
+            
+            // Mobile menu toggle would go here in a real implementation
+        });
+    </script>
+</body>
+</html>
