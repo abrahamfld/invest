@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -144,7 +145,7 @@
                     <div class="flex justify-between items-center mb-4">
                         <h2 class="text-xl font-bold">
                             <i class="fas fa-chart-line text-purple-400 mr-2"></i>
-                            BTC/USDT Live Chart
+                            BTC/USDT Simulated Chart
                         </h2>
                         <div class="flex items-center space-x-2">
                             <span id="current-price" class="font-bold">$0.00</span>
@@ -358,7 +359,7 @@
         // Load user data
         const userData = getUserData(currentUser.id);
         
-        // Trading Bot Simulation with Binance API
+        // Trading Bot Simulation
         let botRunning = false;
         let walletBalance = userData.balance || 0;
         let totalProfit = userData.totalProfit || 0;
@@ -367,11 +368,10 @@
         let dailyTarget = 0;
         let currentProfit = 0;
         let botInterval;
-        let btcPrice = 0;
-        let priceHistory = [];
+        let btcPrice = 30000 + Math.random() * 10000;
+        let priceDirection = Math.random() > 0.5 ? 1 : -1;
         let chart;
-        let binanceSocket = null;
-        let lastPrice = 0;
+        let priceHistory = [];
 
         // Update user data in localStorage
         function updateUserData() {
@@ -416,18 +416,16 @@
             return trade;
         }
 
-        // Initialize Chart.js with Binance WebSocket
-        function initRealTimeChart() {
+        // Initialize Chart.js
+        function initChart() {
             const ctx = document.getElementById('btc-chart').getContext('2d');
-            
-            // Initialize empty chart
             chart = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: Array(100).fill(''),
+                    labels: Array(60).fill(''),
                     datasets: [{
-                        label: 'BTC/USDT',
-                        data: Array(100).fill(0),
+                        label: 'BTC Price',
+                        data: Array(60).fill(btcPrice),
                         borderColor: '#6E44FF',
                         backgroundColor: 'rgba(110, 68, 255, 0.1)',
                         borderWidth: 2,
@@ -440,7 +438,10 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     scales: {
-                        x: { display: false },
+                        x: {
+                            display: false,
+                            grid: { display: false }
+                        },
                         y: {
                             grid: { color: 'rgba(255, 255, 255, 0.1)' },
                             ticks: { color: '#E5E7EB' }
@@ -451,60 +452,22 @@
                         tooltip: {
                             mode: 'index',
                             intersect: false,
-                            callbacks: {
-                                label: function(context) {
-                                    return `Price: $${context.parsed.y.toFixed(2)}`;
-                                }
-                            }
+                            backgroundColor: '#1F2937',
+                            titleColor: '#E5E7EB',
+                            bodyColor: '#E5E7EB',
+                            borderColor: '#6B46C1',
+                            borderWidth: 1
                         }
-                    }
+                    },
+                    interaction: { mode: 'nearest', intersect: false }
                 }
             });
-
-            // Connect to Binance WebSocket
-            connectBinanceWebSocket();
-        }
-
-        function connectBinanceWebSocket() {
-            if (binanceSocket) binanceSocket.close();
-            
-            binanceSocket = new WebSocket("wss://stream.binance.com:9443/ws/btcusdt@kline_1m");
-            
-            binanceSocket.onmessage = (event) => {
-                const message = JSON.parse(event.data);
-                const candle = message.k;
-                btcPrice = parseFloat(candle.c); // Current closing price
-                
-                // Add to price history
-                priceHistory.push(btcPrice);
-                if (priceHistory.length > 100) priceHistory.shift();
-                
-                // Update chart
-                chart.data.datasets[0].data = priceHistory;
-                chart.update();
-                updatePriceDisplay();
-                
-                // Simulate trading based on real price movements
-                if (botRunning) {
-                    simulateTradeDecision();
-                }
-            };
-            
-            binanceSocket.onclose = () => {
-                console.log('Binance WebSocket disconnected. Reconnecting...');
-                setTimeout(connectBinanceWebSocket, 5000);
-            };
         }
 
         // Update price display
         function updatePriceDisplay() {
-            if (lastPrice === 0) {
-                lastPrice = btcPrice;
-                return;
-            }
-            
             document.getElementById('current-price').textContent = `$${btcPrice.toFixed(2)}`;
-            const changePercent = ((btcPrice - lastPrice) / lastPrice * 100).toFixed(2);
+            const changePercent = ((btcPrice - priceHistory[0]) / priceHistory[0] * 100).toFixed(2);
             const changeElement = document.getElementById('price-change');
             changeElement.textContent = `${changePercent}%`;
             
@@ -513,8 +476,29 @@
             } else {
                 changeElement.className = 'text-sm px-2 py-1 rounded bg-red-900 text-red-400';
             }
+        }
+
+        // Simulate price movement
+        function simulatePriceMovement() {
+            // Random price change
+            const volatility = botRunning ? 0.02 : 0.008; // More volatile when bot is active
+            const change = btcPrice * (Math.random() * volatility * priceDirection);
+            btcPrice += change;
             
-            lastPrice = btcPrice;
+            // Occasionally reverse direction
+            if (Math.random() < 0.1) priceDirection *= -1;
+            
+            // Keep price in reasonable range
+            if (btcPrice < 20000) btcPrice = 20000 + Math.random() * 5000;
+            if (btcPrice > 60000) btcPrice = 60000 - Math.random() * 5000;
+            
+            // Update chart
+            priceHistory.push(btcPrice);
+            if (priceHistory.length > 60) priceHistory.shift();
+            
+            chart.data.datasets[0].data = priceHistory;
+            chart.update();
+            updatePriceDisplay();
         }
 
         // Update wallet balance display
@@ -577,56 +561,6 @@
                         }, 1000);
                     }
                 }, 3000);
-            }
-        }
-
-        // Modified trade simulation using real price data
-        function simulateTradeDecision() {
-            // Only trade every 5-10 seconds (adjust as needed)
-            if (Math.random() > 0.3) return;
-            
-            const tradeAmount = parseFloat(document.getElementById('trade-amount').value) || 100;
-            const accuracy = parseInt(document.getElementById('accuracy').value) || 90;
-            
-            // Random trade outcome (weighted by accuracy)
-            const isWin = Math.random() < (accuracy / 100);
-            const profitPercent = (0.5 + Math.random() * 1.5) * (isWin ? 1 : -0.8);
-            const profit = tradeAmount * (profitPercent / 100);
-            
-            // Update balances
-            walletBalance += profit;
-            currentProfit += profit;
-            totalProfit += profit;
-            totalTrades++;
-            
-            if (isWin) winCount++;
-            
-            updateWallet();
-            updateStats();
-            
-            // Save trade
-            const trade = addTrade(isWin ? 'buy' : 'sell', tradeAmount, profit, isWin);
-            
-            // Log trade
-            const tradeLog = document.getElementById('trade-history');
-            const row = document.createElement('tr');
-            row.className = isWin ? 'trade-win' : 'trade-loss';
-            row.innerHTML = `
-                <td class="py-2">${new Date(trade.date).toLocaleTimeString()}</td>
-                <td class="py-2 ${isWin ? 'text-green-500' : 'text-red-500'}">${isWin ? 'BUY (WIN)' : 'SELL (LOSS)'}</td>
-                <td class="py-2">$${tradeAmount.toFixed(2)}</td>
-                <td class="py-2 ${isWin ? 'text-green-500' : 'text-red-500'}">${profit > 0 ? '+' : ''}${profit.toFixed(2)}</td>
-            `;
-            tradeLog.insertBefore(row, tradeLog.firstChild);
-            
-            // Keep only last 20 trades
-            if (tradeLog.children.length > 20) {
-                tradeLog.removeChild(tradeLog.lastChild);
-            }
-            
-            // Check if target reached (with configured accuracy)
-            if (currentProfit >= dailyTarget && Math.random() < (accuracy / 100)) {
-                stopBot(true);
             }
         }
 
@@ -696,7 +630,6 @@
             
             // Reset current profit
             currentProfit = 0;
-            updateStats();
             
             // Update UI
             botRunning = true;
@@ -708,11 +641,59 @@
             
             // Show active state on chart
             document.querySelector('#btc-chart').parentElement.classList.add('bot-active');
+            
+            // Simulate trades
+            botInterval = setInterval(() => {
+                if (!botRunning) return;
+                
+                // Check if target reached (with configured accuracy)
+                if (currentProfit >= dailyTarget && Math.random() < (accuracy / 100)) {
+                    stopBot(true);
+                    return;
+                }
+                
+                // Random trade outcome (weighted by accuracy)
+                const isWin = Math.random() < (accuracy / 100);
+                const profitPercent = (targetPercent / 100) * (isWin ? 1 : -0.8);
+                const profit = tradeAmount * profitPercent;
+                
+                // Update balances
+                walletBalance += profit;
+                currentProfit += profit;
+                totalProfit += profit;
+                totalTrades++;
+                
+                if (isWin) winCount++;
+                
+                updateWallet();
+                updateStats();
+                
+                // Save trade
+                const trade = addTrade(isWin ? 'buy' : 'sell', tradeAmount, profit, isWin);
+                
+                // Log trade
+                const tradeLog = document.getElementById('trade-history');
+                const row = document.createElement('tr');
+                row.className = isWin ? 'trade-win' : 'trade-loss';
+                row.innerHTML = `
+                    <td class="py-2">${new Date(trade.date).toLocaleTimeString()}</td>
+                    <td class="py-2 ${isWin ? 'text-green-500' : 'text-red-500'}">${isWin ? 'BUY (WIN)' : 'SELL (LOSS)'}</td>
+                    <td class="py-2">$${tradeAmount.toFixed(2)}</td>
+                    <td class="py-2 ${isWin ? 'text-green-500' : 'text-red-500'}">${profit > 0 ? '+' : ''}${profit.toFixed(2)}</td>
+                `;
+                tradeLog.insertBefore(row, tradeLog.firstChild);
+                
+                // Keep only last 20 trades
+                if (tradeLog.children.length > 20) {
+                    tradeLog.removeChild(tradeLog.lastChild);
+                }
+            }, 2000 + Math.random() * 3000);
         }
 
         // Stop bot function
         function stopBot(targetHit = false) {
             botRunning = false;
+            clearInterval(botInterval);
             
             document.getElementById('start-bot').classList.remove('hidden');
             document.getElementById('stop-bot').classList.add('hidden');
@@ -751,7 +732,15 @@
             document.getElementById('wallet-balance').textContent = `$${walletBalance.toFixed(2)}`;
             document.getElementById('mobile-wallet-balance').textContent = `$${walletBalance.toFixed(2)}`;
             
-            initRealTimeChart();
+            initChart();
+            
+            // Generate initial price history
+            for (let i = 0; i < 60; i++) {
+                simulatePriceMovement();
+            }
+            
+            // Update price every second
+            setInterval(simulatePriceMovement, 1000);
             
             // Show overlay initially
             document.getElementById('chart-overlay').classList.remove('hidden');
