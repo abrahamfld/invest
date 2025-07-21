@@ -3,311 +3,278 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QuantumYield - AI Crypto Trading</title>
+    <title>QuantumBot | BTC Trading Simulator</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
-    <!-- TradingView Lightweight Charts -->
-    <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#6E44FF',
-                        secondary: '#B892FF',
-                        accent: '#FF44B4',
-                        dark: '#0F0A1E',
-                        light: '#F5F0FF',
-                        success: '#00E676',
-                        danger: '#FF5252',
-                        warning: '#FFAB00',
-                        info: '#00B0FF',
-                    },
-                    animation: {
-                        'float': 'float 6s ease-in-out infinite',
-                        'pulse-slow': 'pulse 6s ease-in-out infinite',
-                    }
-                }
-            }
-        }
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
         @keyframes float {
             0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-20px); }
+            50% { transform: translateY(-10px); }
         }
-        
         .gradient-text {
             background: linear-gradient(90deg, #6E44FF 0%, #FF44B4 100%);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
         }
-        
         .card-hover {
-            transition: all 0.3s ease;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
         .card-hover:hover {
             transform: translateY(-5px);
-            box-shadow: 0 20px 25px -5px rgba(110, 68, 255, 0.1), 0 10px 10px -5px rgba(110, 68, 255, 0.04);
+            box-shadow: 0 10px 25px -5px rgba(110, 68, 255, 0.3);
         }
-        
-        .nav-link {
-            position: relative;
-        }
-        .nav-link:after {
-            content: '';
-            position: absolute;
-            width: 0;
-            height: 2px;
-            bottom: -2px;
-            left: 0;
-            background-color: #6E44FF;
-            transition: width 0.3s ease;
-        }
-        .nav-link:hover:after {
-            width: 100%;
-        }
-        
-        #tradingview-chart {
-            height: 400px;
-            width: 100%;
-            border-radius: 12px;
-            overflow: hidden;
-        }
-        
         .trade-win {
             animation: pulse 2s ease-in-out infinite;
+            background: rgba(0, 230, 118, 0.1);
         }
-        
-        @keyframes pulse {
-            0%, 100% { background-color: rgba(0, 230, 118, 0.1); }
-            50% { background-color: rgba(0, 230, 118, 0.2); }
-        }
-        
         .trade-loss {
-            animation: pulseDanger 2s ease-in-out infinite;
+            animation: pulse 2s ease-in-out infinite;
+            background: rgba(255, 82, 82, 0.1);
         }
-        
-        @keyframes pulseDanger {
-            0%, 100% { background-color: rgba(255, 82, 82, 0.1); }
-            50% { background-color: rgba(255, 82, 82, 0.2); }
+        .bot-active {
+            position: relative;
+            overflow: hidden;
+        }
+        .bot-active:after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #6E44FF, #FF44B4);
+            animation: progress 2s linear infinite;
+        }
+        @keyframes progress {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        .target-hit {
+            animation: pulse 0.5s ease 5, float 1s ease 1;
+        }
+        #mobile-menu {
+            transition: all 0.3s ease;
+            max-height: 0;
+            overflow: hidden;
+        }
+        #mobile-menu:not(.hidden) {
+            max-height: 500px;
         }
     </style>
 </head>
-<body class="bg-dark text-light font-sans antialiased overflow-x-hidden">
-    <!-- Animated Background Elements -->
-    <div class="fixed inset-0 overflow-hidden -z-10">
-        <div class="absolute top-1/4 left-1/4 w-64 h-64 rounded-full bg-primary opacity-10 blur-3xl animate-float"></div>
-        <div class="absolute top-3/4 right-1/4 w-80 h-80 rounded-full bg-accent opacity-10 blur-3xl animate-float" style="animation-delay: 2s;"></div>
-        <div class="absolute bottom-1/4 left-1/2 w-96 h-96 rounded-full bg-secondary opacity-10 blur-3xl animate-float" style="animation-delay: 4s;"></div>
-    </div>
-
-    <!-- Navigation -->
-    <nav class="container mx-auto px-6 py-4">
-        <div class="flex justify-between items-center">
-            <div class="flex items-center space-x-2">
-                <div class="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
+<body class="bg-gray-900 text-gray-100 font-sans antialiased">
+    <!-- Navigation Bar -->
+    <nav class="bg-gray-800 border-b border-gray-700 py-3 px-6 flex justify-between items-center">
+        <div class="flex items-center space-x-2">
+            <a href="index.html" class="flex items-center space-x-2">
+                <div class="w-10 h-10 rounded-lg bg-purple-600 flex items-center justify-center">
                     <i class="fas fa-robot text-white text-xl"></i>
                 </div>
-                <span class="text-xl font-bold">Quantum<span class="gradient-text">Yield</span></span>
-            </div>
-            
-            <div class="hidden md:flex items-center space-x-6">
-                <a href="#" class="nav-link px-3 py-2 flex items-center">
-                    <i class="fas fa-wallet mr-2"></i> My Portfolio
-                </a>
-                <a href="#" class="nav-link px-3 py-2 flex items-center">
-                    <i class="fas fa-chart-line mr-2"></i> Market Data
-                </a>
-                <a href="#" class="nav-link px-3 py-2 flex items-center">
-                    <i class="fas fa-robot mr-2"></i> AI Trading
-                </a>
-                <a href="#" class="nav-link px-3 py-2 flex items-center">
-                    <i class="fas fa-user mr-2"></i> Account
-                </a>
-                <a href="#" class="ml-4 px-4 py-2 bg-gradient-to-r from-primary to-accent rounded-full font-medium hover:opacity-90 transition flex items-center">
-                    <i class="fas fa-sign-out-alt mr-2"></i> Logout
-                </a>
-            </div>
-            
-            <button class="md:hidden text-2xl focus:outline-none">
-                <i class="fas fa-bars"></i>
-            </button>
+                <span class="text-xl font-bold">Quantum<span class="gradient-text">Bot</span></span>
+            </a>
         </div>
+        
+        <div class="hidden md:flex items-center space-x-6">
+            <a href="index.html" class="px-3 py-2 text-gray-300 hover:text-purple-400 flex items-center">
+                <i class="fas fa-chart-line mr-2"></i> Trading
+            </a>
+            <a href="transactions.html" class="px-3 py-2 text-gray-300 hover:text-purple-400 flex items-center">
+                <i class="fas fa-exchange-alt mr-2"></i> Transactions
+            </a>
+            <a href="deposit.html" class="px-3 py-2 text-gray-300 hover:text-purple-400 flex items-center">
+                <i class="fas fa-money-bill-wave mr-2"></i> Deposit
+            </a>
+            <div class="flex items-center space-x-2 bg-gray-700 px-4 py-2 rounded-lg">
+                <i class="fas fa-wallet text-purple-400"></i>
+                <span id="wallet-balance">$0.00</span>
+            </div>
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-user-circle text-xl text-purple-400"></i>
+                <span id="username-display">Guest</span>
+            </div>
+            <button id="start-bot" class="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg font-medium flex items-center">
+                <i class="fas fa-play mr-2"></i> Start Bot
+            </button>
+            <button id="stop-bot" class="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg font-medium flex items-center hidden">
+                <i class="fas fa-stop mr-2"></i> Stop Bot
+            </button>
+            <a href="logout.html" class="px-3 py-2 text-gray-300 hover:text-red-400 flex items-center">
+                <i class="fas fa-sign-out-alt mr-2"></i> Logout
+            </a>
+        </div>
+        
+        <button id="mobile-menu-button" class="md:hidden text-2xl focus:outline-none">
+            <i class="fas fa-bars"></i>
+        </button>
     </nav>
 
+    <!-- Mobile Menu -->
+    <div id="mobile-menu" class="md:hidden hidden bg-gray-800 border-b border-gray-700 px-6 py-3">
+        <div class="flex flex-col space-y-4">
+            <a href="index.html" class="px-3 py-2 text-gray-300 hover:text-purple-400 flex items-center">
+                <i class="fas fa-chart-line mr-2"></i> Trading
+            </a>
+            <a href="transactions.html" class="px-3 py-2 text-gray-300 hover:text-purple-400 flex items-center">
+                <i class="fas fa-exchange-alt mr-2"></i> Transactions
+            </a>
+            <a href="deposit.html" class="px-3 py-2 text-gray-300 hover:text-purple-400 flex items-center">
+                <i class="fas fa-money-bill-wave mr-2"></i> Deposit
+            </a>
+            <div class="flex items-center space-x-2 bg-gray-700 px-4 py-2 rounded-lg">
+                <i class="fas fa-wallet text-purple-400"></i>
+                <span id="mobile-wallet-balance">$0.00</span>
+            </div>
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-user-circle text-xl text-purple-400"></i>
+                <span id="mobile-username-display">Guest</span>
+            </div>
+            <button id="mobile-start-bot" class="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg font-medium flex items-center justify-center">
+                <i class="fas fa-play mr-2"></i> Start Bot
+            </button>
+            <button id="mobile-stop-bot" class="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg font-medium flex items-center justify-center hidden">
+                <i class="fas fa-stop mr-2"></i> Stop Bot
+            </button>
+            <a href="logout.html" class="px-3 py-2 text-gray-300 hover:text-red-400 flex items-center">
+                <i class="fas fa-sign-out-alt mr-2"></i> Logout
+            </a>
+        </div>
+    </div>
+
     <!-- Main Content -->
-    <div class="container mx-auto px-6 py-8">
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <!-- Left Column -->
-            <div class="lg:col-span-2 space-y-8">
-                <!-- Portfolio Summary -->
-                <div class="bg-gradient-to-b from-[#1A1438] to-dark border border-gray-800 rounded-2xl p-6 animate__animated animate__fadeIn">
-                    <h2 class="text-2xl font-bold mb-6 flex items-center">
-                        <i class="fas fa-wallet mr-3 gradient-text"></i> 
-                        Portfolio Overview
-                    </h2>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div class="bg-[#1A1438] rounded-xl p-4 border border-gray-700">
-                            <p class="text-sm opacity-60 mb-1">Total Balance</p>
-                            <p class="text-2xl font-bold">$12,458.73</p>
-                            <p class="text-success text-sm mt-1">
-                                <i class="fas fa-arrow-up mr-1"></i> 12.5% today
-                            </p>
-                        </div>
-                        <div class="bg-[#1A1438] rounded-xl p-4 border border-gray-700">
-                            <p class="text-sm opacity-60 mb-1">Active Investments</p>
-                            <p class="text-2xl font-bold">$8,200.00</p>
-                            <p class="text-success text-sm mt-1">
-                                <i class="fas fa-robot mr-1"></i> 10% daily
-                            </p>
-                        </div>
-                        <div class="bg-[#1A1438] rounded-xl p-4 border border-gray-700">
-                            <p class="text-sm opacity-60 mb-1">Today's Profit</p>
-                            <p class="text-2xl font-bold">$820.00</p>
-                            <p class="text-success text-sm mt-1">
-                                <i class="fas fa-coins mr-1"></i> 32 trades
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Trading Chart -->
-                <div class="bg-gradient-to-b from-[#1A1438] to-dark border border-gray-800 rounded-2xl p-6 animate__animated animate__fadeIn">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="text-2xl font-bold flex items-center">
-                            <i class="fas fa-chart-line mr-3 gradient-text"></i> 
-                            BTC/USDT Live Chart
+    <div class="container mx-auto px-4 py-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Left Column (Chart & Bot Controls) -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- BTC Price Chart -->
+                <div class="bg-gray-800 border border-gray-700 rounded-xl p-4">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-bold">
+                            <i class="fas fa-chart-line text-purple-400 mr-2"></i>
+                            BTC/USDT Simulated Chart
                         </h2>
-                        <div class="flex space-x-2">
-                            <button class="px-3 py-1 bg-gray-800 rounded-lg text-sm">1H</button>
-                            <button class="px-3 py-1 bg-primary rounded-lg text-sm">4H</button>
-                            <button class="px-3 py-1 bg-gray-800 rounded-lg text-sm">1D</button>
-                            <button class="px-3 py-1 bg-gray-800 rounded-lg text-sm">1W</button>
+                        <div class="flex items-center space-x-2">
+                            <span id="current-price" class="font-bold">$0.00</span>
+                            <span id="price-change" class="text-sm px-2 py-1 rounded">0.00%</span>
                         </div>
                     </div>
-                    <div id="tradingview-chart"></div>
+                    <div class="relative">
+                        <canvas id="btc-chart" class="w-full h-80"></canvas>
+                        <div id="chart-overlay" class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-70 hidden">
+                            <div class="text-center p-6 bg-gray-800 rounded-xl border border-purple-500">
+                                <i class="fas fa-robot text-4xl text-purple-400 mb-3"></i>
+                                <h3 class="text-xl font-bold mb-2" id="overlay-title">Bot Inactive</h3>
+                                <p id="overlay-text">Start the trading bot to see live simulation</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-
-                <!-- Trading Activity -->
-                <div class="bg-gradient-to-b from-[#1A1438] to-dark border border-gray-800 rounded-2xl p-6 animate__animated animate__fadeIn">
-                    <h2 class="text-2xl font-bold mb-6 flex items-center">
-                        <i class="fas fa-bolt mr-3 gradient-text"></i> 
-                        Live Trading Activity
+                
+                <!-- Bot Configuration -->
+                <div class="bg-gray-800 border border-gray-700 rounded-xl p-4">
+                    <h2 class="text-xl font-bold mb-4">
+                        <i class="fas fa-cog text-purple-400 mr-2"></i>
+                        Trading Bot Configuration
                     </h2>
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-700">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Investment ($)</label>
+                            <input type="number" id="trade-amount" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="100" min="10" value="100">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Daily Target (%)</label>
+                            <input type="number" id="profit-target" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="10" min="1" max="50" value="10">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Accuracy</label>
+                            <div class="flex items-center space-x-2">
+                                <input type="range" id="accuracy" min="70" max="95" value="90" class="w-full accent-purple-500">
+                                <span id="accuracy-value" class="text-sm font-medium">90%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex space-x-4">
+                        <button id="deposit-btn" class="px-6 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg font-medium flex items-center">
+                            <i class="fas fa-plus-circle mr-2"></i> Deposit
+                        </button>
+                        <button id="withdraw-btn" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg font-medium flex items-center">
+                            <i class="fas fa-hand-holding-usd mr-2"></i> Withdraw
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column (Trades & Stats) -->
+            <div class="space-y-6">
+                <!-- Trading Activity -->
+                <div class="bg-gray-800 border border-gray-700 rounded-xl p-4">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-bold">
+                            <i class="fas fa-bolt text-purple-400 mr-2"></i>
+                            Live Trading Activity
+                        </h2>
+                        <div class="flex items-center space-x-2">
+                            <div id="bot-status" class="h-3 w-3 rounded-full bg-gray-500"></div>
+                            <span class="text-sm" id="status-text">Inactive</span>
+                        </div>
+                    </div>
+                    <div class="overflow-y-auto max-h-96">
+                        <table class="w-full">
                             <thead>
-                                <tr>
-                                    <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Time</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Pair</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Type</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Amount</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Price</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Profit</th>
+                                <tr class="text-left text-sm text-gray-400 border-b border-gray-700">
+                                    <th class="pb-2">Time</th>
+                                    <th class="pb-2">Action</th>
+                                    <th class="pb-2">Amount</th>
+                                    <th class="pb-2">Profit</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-gray-700" id="trading-activity">
-                                <!-- Trading activity will be inserted here by JavaScript -->
+                            <tbody id="trade-history" class="divide-y divide-gray-700">
+                                <!-- Trades will appear here -->
                             </tbody>
                         </table>
                     </div>
                 </div>
-            </div>
-
-            <!-- Right Column -->
-            <div class="space-y-8">
-                <!-- Quick Actions -->
-                <div class="bg-gradient-to-b from-[#1A1438] to-dark border border-gray-800 rounded-2xl p-6 animate__animated animate__fadeIn">
-                    <h2 class="text-2xl font-bold mb-6 flex items-center">
-                        <i class="fas fa-rocket mr-3 gradient-text"></i> 
-                        Quick Actions
-                    </h2>
-                    <div class="space-y-4">
-                        <a href="#" class="block p-4 bg-gradient-to-r from-primary to-accent rounded-xl text-center font-bold hover:opacity-90 transition">
-                            <i class="fas fa-plus-circle mr-2"></i> Deposit Funds
-                        </a>
-                        <a href="#" class="block p-4 bg-gradient-to-r from-success to-green-500 rounded-xl text-center font-bold hover:opacity-90 transition">
-                            <i class="fas fa-hand-holding-usd mr-2"></i> Withdraw Earnings
-                        </a>
-                        <a href="#" class="block p-4 bg-gradient-to-r from-info to-blue-500 rounded-xl text-center font-bold hover:opacity-90 transition">
-                            <i class="fas fa-cog mr-2"></i> Trading Settings
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Recent Transactions -->
-                <div class="bg-gradient-to-b from-[#1A1438] to-dark border border-gray-800 rounded-2xl p-6 animate__animated animate__fadeIn">
-                    <h2 class="text-2xl font-bold mb-6 flex items-center">
-                        <i class="fas fa-exchange-alt mr-3 gradient-text"></i> 
-                        Recent Transactions
-                    </h2>
-                    <div class="space-y-4">
-                        <div class="flex justify-between items-center p-3 bg-gray-800 rounded-lg">
-                            <div>
-                                <p class="font-medium">Deposit</p>
-                                <p class="text-sm opacity-60">Today, 10:45 AM</p>
-                            </div>
-                            <div class="text-success font-bold">+$2,000.00</div>
-                        </div>
-                        <div class="flex justify-between items-center p-3 bg-gray-800 rounded-lg">
-                            <div>
-                                <p class="font-medium">BTC Purchase</p>
-                                <p class="text-sm opacity-60">Today, 09:30 AM</p>
-                            </div>
-                            <div class="text-success font-bold">+$142.50</div>
-                        </div>
-                        <div class="flex justify-between items-center p-3 bg-gray-800 rounded-lg">
-                            <div>
-                                <p class="font-medium">ETH Sale</p>
-                                <p class="text-sm opacity-60">Today, 08:15 AM</p>
-                            </div>
-                            <div class="text-danger font-bold">-$87.30</div>
-                        </div>
-                        <div class="flex justify-between items-center p-3 bg-gray-800 rounded-lg">
-                            <div>
-                                <p class="font-medium">Daily Profit</p>
-                                <p class="text-sm opacity-60">Yesterday, 11:59 PM</p>
-                            </div>
-                            <div class="text-success font-bold">+$745.20</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Performance Metrics -->
-                <div class="bg-gradient-to-b from-[#1A1438] to-dark border border-gray-800 rounded-2xl p-6 animate__animated animate__fadeIn">
-                    <h2 class="text-2xl font-bold mb-6 flex items-center">
-                        <i class="fas fa-tachometer-alt mr-3 gradient-text"></i> 
-                        AI Performance
+                
+                <!-- Performance Stats -->
+                <div class="bg-gray-800 border border-gray-700 rounded-xl p-4">
+                    <h2 class="text-xl font-bold mb-4">
+                        <i class="fas fa-trophy text-purple-400 mr-2"></i>
+                        Trading Performance
                     </h2>
                     <div class="space-y-4">
                         <div>
                             <div class="flex justify-between mb-1">
-                                <span>Win Rate</span>
-                                <span class="font-bold">78.5%</span>
+                                <span>Today's Target</span>
+                                <span id="daily-target" class="font-bold">$0.00</span>
                             </div>
                             <div class="w-full bg-gray-700 rounded-full h-2">
-                                <div class="bg-success h-2 rounded-full" style="width: 78.5%"></div>
+                                <div id="target-progress" class="bg-purple-500 h-2 rounded-full" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span>Current Profit</span>
+                                <span id="today-profit" class="font-bold">$0.00</span>
                             </div>
                         </div>
                         <div>
                             <div class="flex justify-between mb-1">
-                                <span>Daily Return</span>
-                                <span class="font-bold">10.2%</span>
+                                <span>Win Rate</span>
+                                <span id="win-rate" class="font-bold">0%</span>
                             </div>
                             <div class="w-full bg-gray-700 rounded-full h-2">
-                                <div class="bg-primary h-2 rounded-full" style="width: 100%"></div>
+                                <div id="win-rate-bar" class="bg-green-500 h-2 rounded-full" style="width: 0%"></div>
                             </div>
                         </div>
-                        <div>
-                            <div class="flex justify-between mb-1">
-                                <span>Risk Level</span>
-                                <span class="font-bold">Medium</span>
-                            </div>
-                            <div class="w-full bg-gray-700 rounded-full h-2">
-                                <div class="bg-warning h-2 rounded-full" style="width: 60%"></div>
+                        <div class="pt-2 border-t border-gray-700">
+                            <div class="flex justify-between">
+                                <span>Total Trades</span>
+                                <span id="total-trades" class="font-bold">0</span>
                             </div>
                         </div>
                     </div>
@@ -316,253 +283,474 @@
         </div>
     </div>
 
-    <!-- Footer -->
-    <footer class="bg-[#0A0515] border-t border-gray-800 py-12 mt-12">
-        <div class="container mx-auto px-6">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-12">
-                <div>
-                    <div class="flex items-center space-x-2 mb-4">
-                        <div class="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
-                            <i class="fas fa-robot text-white text-xl"></i>
-                        </div>
-                        <span class="text-xl font-bold">Quantum<span class="gradient-text">Yield</span></span>
-                    </div>
-                    <p class="opacity-60 mb-4">Advanced AI crypto trading with consistent daily returns.</p>
-                    <div class="flex space-x-4">
-                        <a href="#" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-primary transition">
-                            <i class="fab fa-twitter"></i>
-                        </a>
-                        <a href="#" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-primary transition">
-                            <i class="fab fa-telegram"></i>
-                        </a>
-                        <a href="#" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-primary transition">
-                            <i class="fab fa-discord"></i>
-                        </a>
-                    </div>
-                </div>
-                
-                <div>
-                    <h3 class="text-lg font-bold mb-4">Trading</h3>
-                    <ul class="space-y-3">
-                        <li><a href="#" class="opacity-60 hover:opacity-100 hover:text-primary transition">Markets</a></li>
-                        <li><a href="#" class="opacity-60 hover:opacity-100 hover:text-primary transition">Portfolio</a></li>
-                        <li><a href="#" class="opacity-60 hover:opacity-100 hover:text-primary transition">Strategies</a></li>
-                        <li><a href="#" class="opacity-60 hover:opacity-100 hover:text-primary transition">Performance</a></li>
-                    </ul>
-                </div>
-                
-                <div>
-                    <h3 class="text-lg font-bold mb-4">Account</h3>
-                    <ul class="space-y-3">
-                        <li><a href="#" class="opacity-60 hover:opacity-100 hover:text-primary transition">Profile</a></li>
-                        <li><a href="#" class="opacity-60 hover:opacity-100 hover:text-primary transition">Security</a></li>
-                        <li><a href="#" class="opacity-60 hover:opacity-100 hover:text-primary transition">Transactions</a></li>
-                        <li><a href="#" class="opacity-60 hover:opacity-100 hover:text-primary transition">Settings</a></li>
-                    </ul>
-                </div>
-                
-                <div>
-                    <h3 class="text-lg font-bold mb-4">Legal</h3>
-                    <ul class="space-y-3">
-                        <li><a href="#" class="opacity-60 hover:opacity-100 hover:text-primary transition">Privacy Policy</a></li>
-                        <li><a href="#" class="opacity-60 hover:opacity-100 hover:text-primary transition">Terms of Service</a></li>
-                        <li><a href="#" class="opacity-60 hover:opacity-100 hover:text-primary transition">Risk Disclosure</a></li>
-                        <li><a href="#" class="opacity-60 hover:opacity-100 hover:text-primary transition">Compliance</a></li>
-                    </ul>
-                </div>
-            </div>
-            
-            <div class="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
-                <p class="opacity-60 mb-4 md:mb-0">© 2023 QuantumYield. All rights reserved.</p>
-                <div class="flex space-x-6">
-                    <a href="#" class="opacity-60 hover:opacity-100 transition">Privacy</a>
-                    <a href="#" class="opacity-60 hover:opacity-100 transition">Terms</a>
-                    <a href="#" class="opacity-60 hover:opacity-100 transition">Cookies</a>
-                </div>
-            </div>
-        </div>
-    </footer>
+    <!-- Confetti Effect Container -->
+    <div id="confetti-container" class="fixed inset-0 pointer-events-none z-50 overflow-hidden hidden"></div>
 
-    <!-- TradingView Chart Script -->
     <script>
-        // Initialize TradingView Chart
-        const chartContainer = document.getElementById('tradingview-chart');
-        const chart = LightweightCharts.createChart(chartContainer, {
-            layout: {
-                backgroundColor: '#1A1438',
-                textColor: '#F5F0FF',
-            },
-            grid: {
-                vertLines: {
-                    color: 'rgba(70, 70, 110, 0.2)',
-                },
-                horzLines: {
-                    color: 'rgba(70, 70, 110, 0.2)',
-                },
-            },
-            crosshair: {
-                mode: LightweightCharts.CrosshairMode.Normal,
-            },
-            rightPriceScale: {
-                borderColor: 'rgba(110, 68, 255, 0.2)',
-            },
-            timeScale: {
-                borderColor: 'rgba(110, 68, 255, 0.2)',
-            },
-        });
-
-        const candleSeries = chart.addCandlestickSeries({
-            upColor: '#00E676',
-            downColor: '#FF5252',
-            borderDownColor: '#FF5252',
-            borderUpColor: '#00E676',
-            wickDownColor: '#FF5252',
-            wickUpColor: '#00E676',
-        });
-
-        // Generate random candle data
-        function generateRandomCandleData(count) {
-            const result = [];
-            let time = new Date();
-            time.setUTCHours(0, 0, 0, 0);
-            time.setUTCDate(time.getUTCDate() - count);
+        // Mobile menu toggle
+        document.addEventListener('DOMContentLoaded', () => {
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
             
-            let previousClose = 25000 + Math.random() * 5000;
-            
-            for (let i = 0; i < count; ++i) {
-                const open = previousClose;
-                const close = open + (Math.random() - 0.5) * open * 0.02;
-                const high = Math.max(open, close) + Math.random() * open * 0.01;
-                const low = Math.min(open, close) - Math.random() * open * 0.01;
+            mobileMenuButton.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
                 
-                result.push({
-                    time: time.getTime() / 1000,
-                    open,
-                    high,
-                    low,
-                    close,
-                });
-
-                // Move to next day
-                time.setUTCDate(time.getUTCDate() + 1);
-                
-                // Add some weekends
-                if (time.getUTCDay() === 6) {
-                    time.setUTCDate(time.getUTCDate() + 2);
+                // Toggle between hamburger and close icon
+                const icon = mobileMenuButton.querySelector('i');
+                if (mobileMenu.classList.contains('hidden')) {
+                    icon.classList.remove('fa-times');
+                    icon.classList.add('fa-bars');
+                } else {
+                    icon.classList.remove('fa-bars');
+                    icon.classList.add('fa-times');
                 }
-                
-                previousClose = close;
-            }
-            
-            return result;
+            });
+
+            // Add logout functionality
+            const logoutLinks = document.querySelectorAll('a[href="logout.html"]');
+            logoutLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    // Clear user session
+                    localStorage.removeItem('currentUser');
+                    localStorage.removeItem('username');
+                    // Redirect to login page
+                    window.location.href = 'login.html';
+                });
+            });
+        });
+
+        // User Management
+        const currentUser = {
+            id: localStorage.getItem('currentUser') || `user_${Math.floor(Math.random() * 10000)}`,
+            name: localStorage.getItem('username') || `Trader_${Math.floor(1000 + Math.random() * 9000)}`
+        };
+
+        // Initialize user data if not exists
+        if (!localStorage.getItem('users')) {
+            localStorage.setItem('users', JSON.stringify({}));
         }
 
-        const initialData = generateRandomCandleData(200);
-        candleSeries.setData(initialData);
+        function getUserData(userId) {
+            const users = JSON.parse(localStorage.getItem('users'));
+            return users[userId] || null;
+        }
 
-        // Update chart with new data periodically
-        setInterval(() => {
-            const lastPoint = initialData[initialData.length - 1];
-            const newTime = lastPoint.time + 86400; // Add one day
-            
-            const open = lastPoint.close;
-            const close = open + (Math.random() - 0.5) * open * 0.02;
-            const high = Math.max(open, close) + Math.random() * open * 0.01;
-            const low = Math.min(open, close) - Math.random() * open * 0.01;
-            
-            const newPoint = {
-                time: newTime,
-                open,
-                high,
-                low,
-                close,
+        function initializeUser(userId, username) {
+            const users = JSON.parse(localStorage.getItem('users'));
+            users[userId] = {
+                username,
+                balance: 0,
+                totalProfit: 0,
+                winCount: 0,
+                totalTrades: 0,
+                transactions: [],
+                tradingHistory: []
             };
-            
-            initialData.push(newPoint);
-            candleSeries.update(newPoint);
-            
-            // Keep only last 200 points
-            if (initialData.length > 200) {
-                initialData.shift();
-            }
-        }, 3000);
+            localStorage.setItem('users', JSON.stringify(users));
+            localStorage.setItem('currentUser', userId);
+            localStorage.setItem('username', username);
+            return users[userId];
+        }
 
-        // Simulate live trading activity
-        const tradingPairs = ['BTC/USDT', 'ETH/USDT', 'SOL/USDT', 'ADA/USDT', 'DOT/USDT'];
-        const tradeTypes = ['BUY', 'SELL'];
+        if (!getUserData(currentUser.id)) {
+            initializeUser(currentUser.id, currentUser.name);
+        }
+
+        // Load user data
+        const userData = getUserData(currentUser.id);
         
-        function generateRandomTrade() {
-            const pair = tradingPairs[Math.floor(Math.random() * tradingPairs.length)];
-            const type = tradeTypes[Math.floor(Math.random() * tradeTypes.length)];
-            const amount = (Math.random() * 5).toFixed(4);
-            const price = (20000 + Math.random() * 20000).toFixed(2);
-            const profit = (Math.random() * 200 - 40).toFixed(2);
-            const isWin = parseFloat(profit) > 0;
-            
-            const now = new Date();
-            const time = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
-            
-            return {
-                time,
-                pair,
+        // Trading Bot Simulation
+        let botRunning = false;
+        let walletBalance = userData.balance || 0;
+        let totalProfit = userData.totalProfit || 0;
+        let winCount = userData.winCount || 0;
+        let totalTrades = userData.totalTrades || 0;
+        let dailyTarget = 0;
+        let currentProfit = 0;
+        let botInterval;
+        let btcPrice = 30000 + Math.random() * 10000;
+        let priceDirection = Math.random() > 0.5 ? 1 : -1;
+        let chart;
+        let priceHistory = [];
+
+        // Update user data in localStorage
+        function updateUserData() {
+            const users = JSON.parse(localStorage.getItem('users'));
+            users[currentUser.id] = {
+                ...users[currentUser.id],
+                balance: walletBalance,
+                totalProfit,
+                winCount,
+                totalTrades
+            };
+            localStorage.setItem('users', JSON.stringify(users));
+        }
+
+        // Add transaction to history
+        function addTransaction(type, amount) {
+            const users = JSON.parse(localStorage.getItem('users'));
+            const transaction = {
+                id: Date.now(),
                 type,
                 amount,
-                price,
-                profit,
-                isWin
+                date: new Date().toISOString()
             };
+            users[currentUser.id].transactions.unshift(transaction);
+            localStorage.setItem('users', JSON.stringify(users));
+            return transaction;
         }
-        
-        function updateTradingActivity() {
-            const activityTable = document.getElementById('trading-activity');
-            const trade = generateRandomTrade();
+
+        // Add trade to trading history
+        function addTrade(type, amount, profit, isWin) {
+            const users = JSON.parse(localStorage.getItem('users'));
+            const trade = {
+                id: Date.now(),
+                type,
+                amount,
+                profit,
+                isWin,
+                date: new Date().toISOString()
+            };
+            users[currentUser.id].tradingHistory.unshift(trade);
+            localStorage.setItem('users', JSON.stringify(users));
+            return trade;
+        }
+
+        // Initialize Chart.js
+        function initChart() {
+            const ctx = document.getElementById('btc-chart').getContext('2d');
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Array(60).fill(''),
+                    datasets: [{
+                        label: 'BTC Price',
+                        data: Array(60).fill(btcPrice),
+                        borderColor: '#6E44FF',
+                        backgroundColor: 'rgba(110, 68, 255, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            display: false,
+                            grid: { display: false }
+                        },
+                        y: {
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                            ticks: { color: '#E5E7EB' }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            backgroundColor: '#1F2937',
+                            titleColor: '#E5E7EB',
+                            bodyColor: '#E5E7EB',
+                            borderColor: '#6B46C1',
+                            borderWidth: 1
+                        }
+                    },
+                    interaction: { mode: 'nearest', intersect: false }
+                }
+            });
+        }
+
+        // Update price display
+        function updatePriceDisplay() {
+            document.getElementById('current-price').textContent = `$${btcPrice.toFixed(2)}`;
+            const changePercent = ((btcPrice - priceHistory[0]) / priceHistory[0] * 100).toFixed(2);
+            const changeElement = document.getElementById('price-change');
+            changeElement.textContent = `${changePercent}%`;
             
-            const row = document.createElement('tr');
-            row.className = trade.isWin ? 'trade-win' : 'trade-loss';
-            
-            row.innerHTML = `
-                <td class="px-4 py-3 whitespace-nowrap">${trade.time}</td>
-                <td class="px-4 py-3 whitespace-nowrap font-medium">${trade.pair}</td>
-                <td class="px-4 py-3 whitespace-nowrap ${trade.type === 'BUY' ? 'text-success' : 'text-danger'}">${trade.type}</td>
-                <td class="px-4 py-3 whitespace-nowrap">${trade.amount}</td>
-                <td class="px-4 py-3 whitespace-nowrap">$${trade.price}</td>
-                <td class="px-4 py-3 whitespace-nowrap ${trade.isWin ? 'text-success' : 'text-danger'}">${trade.profit > 0 ? '+' : ''}${trade.profit}</td>
-            `;
-            
-            activityTable.insertBefore(row, activityTable.firstChild);
-            
-            // Keep only last 10 trades
-            if (activityTable.children.length > 10) {
-                activityTable.removeChild(activityTable.lastChild);
+            if (changePercent > 0) {
+                changeElement.className = 'text-sm px-2 py-1 rounded bg-green-900 text-green-400';
+            } else {
+                changeElement.className = 'text-sm px-2 py-1 rounded bg-red-900 text-red-400';
             }
         }
-        
-        // Initial trades
-        for (let i = 0; i < 5; i++) {
-            updateTradingActivity();
-        }
-        
-        // Update every 3-8 seconds randomly
-        setInterval(updateTradingActivity, 3000 + Math.random() * 5000);
 
-        // Simple animation triggers
-        document.addEventListener('DOMContentLoaded', function() {
-            const animateOnScroll = (elements) => {
-                elements.forEach(element => {
-                    const elementPosition = element.getBoundingClientRect().top;
-                    const screenPosition = window.innerHeight / 1.3;
-                    
-                    if(elementPosition < screenPosition) {
-                        element.classList.add('animate__animated', 'animate__fadeInUp');
+        // Simulate price movement
+        function simulatePriceMovement() {
+            // Random price change
+            const volatility = botRunning ? 0.02 : 0.008; // More volatile when bot is active
+            const change = btcPrice * (Math.random() * volatility * priceDirection);
+            btcPrice += change;
+            
+            // Occasionally reverse direction
+            if (Math.random() < 0.1) priceDirection *= -1;
+            
+            // Keep price in reasonable range
+            if (btcPrice < 20000) btcPrice = 20000 + Math.random() * 5000;
+            if (btcPrice > 60000) btcPrice = 60000 - Math.random() * 5000;
+            
+            // Update chart
+            priceHistory.push(btcPrice);
+            if (priceHistory.length > 60) priceHistory.shift();
+            
+            chart.data.datasets[0].data = priceHistory;
+            chart.update();
+            updatePriceDisplay();
+        }
+
+        // Update wallet balance display
+        function updateWallet() {
+            document.getElementById('wallet-balance').textContent = `$${walletBalance.toFixed(2)}`;
+            document.getElementById('mobile-wallet-balance').textContent = `$${walletBalance.toFixed(2)}`;
+            updateUserData();
+        }
+
+        // Update performance stats
+        function updateStats() {
+            const winRate = totalTrades > 0 ? (winCount / totalTrades * 100).toFixed(1) : 0;
+            document.getElementById('win-rate').textContent = `${winRate}%`;
+            document.getElementById('win-rate-bar').style.width = `${winRate}%`;
+            document.getElementById('today-profit').textContent = `$${currentProfit.toFixed(2)}`;
+            document.getElementById('total-trades').textContent = totalTrades;
+            
+            // Update target progress
+            if (dailyTarget > 0) {
+                const progress = Math.min(100, (currentProfit / dailyTarget) * 100);
+                document.getElementById('target-progress').style.width = `${progress}%`;
+            }
+        }
+
+        // Create confetti effect
+        function createConfetti() {
+            const container = document.getElementById('confetti-container');
+            container.classList.remove('hidden');
+            
+            for (let i = 0; i < 100; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'absolute w-2 h-2 rounded-full';
+                confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
+                confetti.style.left = `${Math.random() * 100}%`;
+                confetti.style.top = '-10px';
+                confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+                confetti.style.animation = `fall ${2 + Math.random() * 3}s linear forwards`;
+                
+                // Add animation
+                const style = document.createElement('style');
+                style.textContent = `
+                    @keyframes fall {
+                        to {
+                            transform: translateY(100vh) rotate(${Math.random() * 360}deg);
+                            opacity: 0;
+                        }
                     }
-                });
-            };
+                `;
+                document.head.appendChild(style);
+                
+                container.appendChild(confetti);
+                
+                // Remove after animation
+                setTimeout(() => {
+                    confetti.remove();
+                    if (i === 99) {
+                        setTimeout(() => {
+                            container.classList.add('hidden');
+                            container.innerHTML = '';
+                        }, 1000);
+                    }
+                }, 3000);
+            }
+        }
+
+        // Deposit random amount ($100-$500)
+        document.getElementById('deposit-btn').addEventListener('click', () => {
+            const depositAmount = Math.floor(100 + Math.random() * 400);
+            walletBalance += depositAmount;
+            updateWallet();
             
-            const animatedElements = document.querySelectorAll('.animate-on-scroll');
-            window.addEventListener('scroll', () => animateOnScroll(animatedElements));
-            animateOnScroll(animatedElements); // Run once on load
+            // Save transaction
+            const transaction = addTransaction('deposit', depositAmount);
             
-            // Mobile menu toggle would go here in a real implementation
+            // Log deposit
+            const tradeLog = document.getElementById('trade-history');
+            const row = document.createElement('tr');
+            row.className = 'bg-blue-900 bg-opacity-30';
+            row.innerHTML = `
+                <td class="py-2">${new Date(transaction.date).toLocaleTimeString()}</td>
+                <td class="py-2">DEPOSIT</td>
+                <td class="py-2">$${depositAmount.toFixed(2)}</td>
+                <td class="py-2 text-green-500">+$${depositAmount.toFixed(2)}</td>
+            `;
+            tradeLog.insertBefore(row, tradeLog.firstChild);
+        });
+
+        // Withdraw random amount
+        document.getElementById('withdraw-btn').addEventListener('click', () => {
+            if (walletBalance < 10) {
+                alert("Insufficient funds!");
+                return;
+            }
+            
+            const withdrawAmount = Math.min(walletBalance, Math.floor(50 + Math.random() * 200));
+            walletBalance -= withdrawAmount;
+            updateWallet();
+            
+            // Save transaction
+            const transaction = addTransaction('withdraw', withdrawAmount);
+            
+            // Log withdrawal
+            const tradeLog = document.getElementById('trade-history');
+            const row = document.createElement('tr');
+            row.className = 'bg-purple-900 bg-opacity-30';
+            row.innerHTML = `
+                <td class="py-2">${new Date(transaction.date).toLocaleTimeString()}</td>
+                <td class="py-2">WITHDRAW</td>
+                <td class="py-2">$${withdrawAmount.toFixed(2)}</td>
+                <td class="py-2 text-red-500">-$${withdrawAmount.toFixed(2)}</td>
+            `;
+            tradeLog.insertBefore(row, tradeLog.firstChild);
+        });
+
+        // Start/Stop Trading Bot
+        function startBot() {
+            const tradeAmount = parseFloat(document.getElementById('trade-amount').value) || 100;
+            const targetPercent = parseFloat(document.getElementById('profit-target').value) || 10;
+            const accuracy = parseInt(document.getElementById('accuracy').value) || 90;
+            
+            if (walletBalance < tradeAmount) {
+                alert("Not enough funds! Deposit first.");
+                return;
+            }
+
+            // Calculate daily target
+            dailyTarget = tradeAmount * (targetPercent / 100);
+            document.getElementById('daily-target').textContent = `$${dailyTarget.toFixed(2)}`;
+            
+            // Reset current profit
+            currentProfit = 0;
+            
+            // Update UI
+            botRunning = true;
+            document.getElementById('start-bot').classList.add('hidden');
+            document.getElementById('stop-bot').classList.remove('hidden');
+            document.getElementById('mobile-start-bot').classList.add('hidden');
+            document.getElementById('mobile-stop-bot').classList.remove('hidden');
+            document.getElementById('bot-status').className = 'h-3 w-3 rounded-full bg-green-500 animate-pulse';
+            document.getElementById('status-text').textContent = 'Active';
+            document.getElementById('chart-overlay').classList.add('hidden');
+            
+            // Show active state on chart
+            document.querySelector('#btc-chart').parentElement.classList.add('bot-active');
+            
+            // Simulate trades
+            botInterval = setInterval(() => {
+                if (!botRunning) return;
+                
+                // Check if target reached (with configured accuracy)
+                if (currentProfit >= dailyTarget && Math.random() < (accuracy / 100)) {
+                    stopBot(true);
+                    return;
+                }
+                
+                // Random trade outcome (weighted by accuracy)
+                const isWin = Math.random() < (accuracy / 100);
+                const profitPercent = (targetPercent / 100) * (isWin ? 1 : -0.8);
+                const profit = tradeAmount * profitPercent;
+                
+                // Update balances
+                walletBalance += profit;
+                currentProfit += profit;
+                totalProfit += profit;
+                totalTrades++;
+                
+                if (isWin) winCount++;
+                
+                updateWallet();
+                updateStats();
+                
+                // Save trade
+                const trade = addTrade(isWin ? 'buy' : 'sell', tradeAmount, profit, isWin);
+                
+                // Log trade
+                const tradeLog = document.getElementById('trade-history');
+                const row = document.createElement('tr');
+                row.className = isWin ? 'trade-win' : 'trade-loss';
+                row.innerHTML = `
+                    <td class="py-2">${new Date(trade.date).toLocaleTimeString()}</td>
+                    <td class="py-2 ${isWin ? 'text-green-500' : 'text-red-500'}">${isWin ? 'BUY (WIN)' : 'SELL (LOSS)'}</td>
+                    <td class="py-2">$${tradeAmount.toFixed(2)}</td>
+                    <td class="py-2 ${isWin ? 'text-green-500' : 'text-red-500'}">${profit > 0 ? '+' : ''}${profit.toFixed(2)}</td>
+                `;
+                tradeLog.insertBefore(row, tradeLog.firstChild);
+                
+                // Keep only last 20 trades
+                if (tradeLog.children.length > 20) {
+                    tradeLog.removeChild(tradeLog.lastChild);
+                }
+            }, 2000 + Math.random() * 3000);
+        }
+
+        // Stop bot function
+        function stopBot(targetHit = false) {
+            botRunning = false;
+            clearInterval(botInterval);
+            
+            document.getElementById('start-bot').classList.remove('hidden');
+            document.getElementById('stop-bot').classList.add('hidden');
+            document.getElementById('mobile-start-bot').classList.remove('hidden');
+            document.getElementById('mobile-stop-bot').classList.add('hidden');
+            document.getElementById('bot-status').className = 'h-3 w-3 rounded-full bg-gray-500';
+            document.getElementById('status-text').textContent = 'Inactive';
+            document.querySelector('#btc-chart').parentElement.classList.remove('bot-active');
+            
+            if (targetHit) {
+                createConfetti();
+                document.getElementById('chart-overlay').classList.remove('hidden');
+                document.getElementById('overlay-title').textContent = 'Target Reached!';
+                document.getElementById('overlay-title').classList.add('gradient-text', 'text-2xl', 'target-hit');
+                document.getElementById('overlay-text').textContent = `Daily target of $${dailyTarget.toFixed(2)} achieved!`;
+                
+                setTimeout(() => {
+                    document.getElementById('overlay-title').classList.remove('target-hit');
+                }, 2000);
+            }
+        }
+
+        document.getElementById('start-bot').addEventListener('click', startBot);
+        document.getElementById('mobile-start-bot').addEventListener('click', startBot);
+        document.getElementById('stop-bot').addEventListener('click', () => stopBot(false));
+        document.getElementById('mobile-stop-bot').addEventListener('click', () => stopBot(false));
+
+        // Update accuracy display
+        document.getElementById('accuracy').addEventListener('input', function() {
+            document.getElementById('accuracy-value').textContent = `${this.value}%`;
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // Set username
+            document.getElementById('username-display').textContent = currentUser.name;
+            document.getElementById('mobile-username-display').textContent = currentUser.name;
+            
+            // Load initial balance
+            document.getElementById('wallet-balance').textContent = `$${walletBalance.toFixed(2)}`;
+            document.getElementById('mobile-wallet-balance').textContent = `$${walletBalance.toFixed(2)}`;
+            
+            initChart();
+            
+            // Generate initial price history
+            for (let i = 0; i < 60; i++) {
+                simulatePriceMovement();
+            }
+            
+            // Update price every second
+            setInterval(simulatePriceMovement, 1000);
+            
+            // Show overlay initially
+            document.getElementById('chart-overlay').classList.remove('hidden');
         });
     </script>
 </body>

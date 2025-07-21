@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuantumBot | Performance Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <style>
+        .gradient-text {
+            background: linear-gradient(90deg, #6E44FF 0%, #FF44B4 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .card-hover {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(110, 68, 255, 0.3);
+        }
+        .dashboard-card {
+            background: linear-gradient(135deg, rgba(110, 68, 255, 0.1) 0%, rgba(255, 68, 180, 0.1) 100%);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        #mobile-menu {
+            transition: all 0.3s ease;
+            max-height: 0;
+            overflow: hidden;
+        }
+        #mobile-menu:not(.hidden) {
+            max-height: 500px;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 font-sans antialiased">
+    <!-- Navigation Bar -->
+    <nav class="bg-gray-800 border-b border-gray-700 py-3 px-6 flex justify-between items-center">
+        <div class="flex items-center space-x-2">
+            <a href="index.html" class="flex items-center space-x-2">
+                <div class="w-10 h-10 rounded-lg bg-purple-600 flex items-center justify-center">
+                    <i class="fas fa-robot text-white text-xl"></i>
+                </div>
+                <span class="text-xl font-bold">Quantum<span class="gradient-text">Bot</span></span>
+            </a>
+        </div>
+        
+        <div class="hidden md:flex items-center space-x-6">
+            <a href="index.html" class="px-3 py-2 text-gray-300 hover:text-purple-400 flex items-center">
+                <i class="fas fa-chart-line mr-2"></i> Trading
+            </a>
+            <a href="transactions.html" class="px-3 py-2 text-gray-300 hover:text-purple-400 flex items-center">
+                <i class="fas fa-exchange-alt mr-2"></i> Transactions
+            </a>
+            <a href="deposit.html" class="px-3 py-2 text-gray-300 hover:text-purple-400 flex items-center">
+                <i class="fas fa-money-bill-wave mr-2"></i> Deposit
+            </a>
+            <div class="flex items-center space-x-2 bg-gray-700 px-4 py-2 rounded-lg">
+                <i class="fas fa-wallet text-purple-400"></i>
+                <span id="wallet-balance">$0.00</span>
+            </div>
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-user-circle text-xl text-purple-400"></i>
+                <span id="username-display">Guest</span>
+            </div>
+            <a href="logout.html" class="px-3 py-2 text-gray-300 hover:text-red-400 flex items-center">
+                <i class="fas fa-sign-out-alt mr-2"></i> Logout
+            </a>
+        </div>
+        
+        <button id="mobile-menu-button" class="md:hidden text-2xl focus:outline-none">
+            <i class="fas fa-bars"></i>
+        </button>
+    </nav>
+
+    <!-- Mobile Menu -->
+    <div id="mobile-menu" class="md:hidden hidden bg-gray-800 border-b border-gray-700 px-6 py-3">
+        <div class="flex flex-col space-y-4">
+            <a href="index.html" class="px-3 py-2 text-gray-300 hover:text-purple-400 flex items-center">
+                <i class="fas fa-chart-line mr-2"></i> Trading
+            </a>
+            <a href="transactions.html" class="px-3 py-2 text-gray-300 hover:text-purple-400 flex items-center">
+                <i class="fas fa-exchange-alt mr-2"></i> Transactions
+            </a>
+            <a href="deposit.html" class="px-3 py-2 text-gray-300 hover:text-purple-400 flex items-center">
+                <i class="fas fa-money-bill-wave mr-2"></i> Deposit
+            </a>
+            <div class="flex items-center space-x-2 bg-gray-700 px-4 py-2 rounded-lg">
+                <i class="fas fa-wallet text-purple-400"></i>
+                <span id="mobile-wallet-balance">$0.00</span>
+            </div>
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-user-circle text-xl text-purple-400"></i>
+                <span id="mobile-username-display">Guest</span>
+            </div>
+            <a href="logout.html" class="px-3 py-2 text-gray-300 hover:text-red-400 flex items-center">
+                <i class="fas fa-sign-out-alt mr-2"></i> Logout
+            </a>
+        </div>
+    </div>
+
+    <!-- Dashboard Content -->
+    <div class="container mx-auto px-4 py-8">
+        <!-- Dashboard Header -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
+            <div>
+                <h1 class="text-2xl md:text-3xl font-bold mb-2">
+                    <i class="fas fa-tachometer-alt text-purple-400 mr-3"></i>
+                    Performance Dashboard
+                </h1>
+                <p class="text-gray-400">Analyze your trading bot's performance with interactive insights</p>
+            </div>
+            <div class="mt-4 md:mt-0 flex space-x-3">
+                <select id="time-filter" class="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    <option value="7">Last 7 Days</option>
+                    <option value="30" selected>Last 30 Days</option>
+                    <option value="90">Last 90 Days</option>
+                    <option value="all">All Time</option>
+                </select>
+                <button id="refresh-btn" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg flex items-center">
+                    <i class="fas fa-sync-alt mr-2"></i> Refresh
+                </button>
+            </div>
+        </div>
+
+        <!-- KPI Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <!-- Total Profit -->
+            <div class="dashboard-card rounded-xl p-6 card-hover">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-gray-400">Total Profit</p>
+                        <h3 id="total-profit-kpi" class="text-3xl font-bold mt-1">$0.00</h3>
+                    </div>
+                    <div class="bg-purple-600 bg-opacity-20 p-3 rounded-full">
+                        <i class="fas fa-coins text-purple-400 text-xl"></i>
+                    </div>
+                </div>
+                <div class="mt-4 pt-4 border-t border-gray-700">
+                    <p class="text-sm flex items-center">
+                        <span id="profit-change" class="font-medium mr-2">0%</span>
+                        <span id="profit-change-text" class="text-gray-400">vs previous period</span>
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Win Rate -->
+            <div class="dashboard-card rounded-xl p-6 card-hover">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-gray-400">Win Rate</p>
+                        <h3 id="win-rate-kpi" class="text-3xl font-bold mt-1">0%</h3>
+                    </div>
+                    <div class="bg-green-600 bg-opacity-20 p-3 rounded-full">
+                        <i class="fas fa-trophy text-green-400 text-xl"></i>
+                    </div>
+                </div>
+                <div class="mt-4 pt-4 border-t border-gray-700">
+                    <div class="w-full bg-gray-700 rounded-full h-2">
+                        <div id="win-rate-bar-kpi" class="bg-green-500 h-2 rounded-full" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Avg. Daily Return -->
+            <div class="dashboard-card rounded-xl p-6 card-hover">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-gray-400">Avg. Daily Return</p>
+                        <h3 id="avg-return-kpi" class="text-3xl font-bold mt-1">0%</h3>
+                    </div>
+                    <div class="bg-blue-600 bg-opacity-20 p-3 rounded-full">
+                        <i class="fas fa-chart-line text-blue-400 text-xl"></i>
+                    </div>
+                </div>
+                <div class="mt-4 pt-4 border-t border-gray-700">
+                    <p class="text-sm text-gray-400">
+                        <span id="best-day">Best day: $0.00</span>
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Total Trades -->
+            <div class="dashboard-card rounded-xl p-6 card-hover">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-gray-400">Total Trades</p>
+                        <h3 id="total-trades-kpi" class="text-3xl font-bold mt-1">0</h3>
+                    </div>
+                    <div class="bg-orange-600 bg-opacity-20 p-3 rounded-full">
+                        <i class="fas fa-exchange-alt text-orange-400 text-xl"></i>
+                    </div>
+                </div>
+                <div class="mt-4 pt-4 border-t border-gray-700">
+                    <p class="text-sm text-gray-400">
+                        <span id="trades-per-day">~0/day</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Charts -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <!-- Profit/Loss Over Time -->
+            <div class="dashboard-card rounded-xl p-6 card-hover">
+                <h2 class="text-xl font-bold mb-4 flex items-center">
+                    <i class="fas fa-chart-area text-purple-400 mr-3"></i>
+                    Profit/Loss Trend
+                </h2>
+                <div id="profit-trend-chart" class="h-80"></div>
+            </div>
+            
+            <!-- Win/Loss Distribution -->
+            <div class="dashboard-card rounded-xl p-6 card-hover">
+                <h2 class="text-xl font-bold mb-4 flex items-center">
+                    <i class="fas fa-chart-pie text-purple-400 mr-3"></i>
+                    Trade Outcomes
+                </h2>
+                <div id="outcome-distribution-chart" class="h-80"></div>
+            </div>
+        </div>
+
+        <!-- Secondary Charts -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+            <!-- Daily Returns -->
+            <div class="dashboard-card rounded-xl p-6 card-hover">
+                <h2 class="text-xl font-bold mb-4 flex items-center">
+                    <i class="fas fa-chart-bar text-purple-400 mr-3"></i>
+                    Daily Returns
+                </h2>
+                <div id="daily-returns-chart" class="h-64"></div>
+            </div>
+            
+            <!-- Trade Size Distribution -->
+            <div class="dashboard-card rounded-xl p-6 card-hover">
+                <h2 class="text-xl font-bold mb-4 flex items-center">
+                    <i class="fas fa-weight-hanging text-purple-400 mr-3"></i>
+                    Trade Size Analysis
+                </h2>
+                <div id="trade-size-chart" class="h-64"></div>
+            </div>
+            
+            <!-- Time of Day Heatmap -->
+            <div class="dashboard-card rounded-xl p-6 card-hover">
+                <h2 class="text-xl font-bold mb-4 flex items-center">
+                    <i class="fas fa-clock text-purple-400 mr-3"></i>
+                    Trading Activity Heatmap
+                </h2>
+                <div id="heatmap-chart" class="h-64"></div>
+            </div>
+        </div>
+
+        <!-- Recent Trades Table -->
+        <div class="dashboard-card rounded-xl overflow-hidden">
+            <div class="p-6">
+                <h2 class="text-xl font-bold mb-4 flex items-center">
+                    <i class="fas fa-list text-purple-400 mr-3"></i>
+                    Recent Trading Activity
+                </h2>
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-gray-700">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Date</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Type</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Amount</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Profit</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Result</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recent-trades" class="divide-y divide-gray-700">
+                            <!-- Trades will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mobile menu toggle
+        document.addEventListener('DOMContentLoaded', () => {
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            
+            mobileMenuButton.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+                
+                // Toggle between hamburger and close icon
+                const icon = mobileMenuButton.querySelector('i');
+                if (mobileMenu.classList.contains('hidden')) {
+                    icon.classList.remove('fa-times');
+                    icon.classList.add('fa-bars');
+                } else {
+                    icon.classList.remove('fa-bars');
+                    icon.classList.add('fa-times');
+                }
+            });
+
+            // Add logout functionality
+            const logoutLinks = document.querySelectorAll('a[href="logout.html"]');
+            logoutLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    // Clear user session
+                    localStorage.removeItem('currentUser');
+                    localStorage.removeItem('username');
+                    // Redirect to login page
+                    window.location.href = 'login.html';
+                });
+            });
+        });
+
+        // Load user data
+        const currentUser = {
+            id: localStorage.getItem('currentUser') || `user_${Math.floor(Math.random() * 10000)}`,
+            name: localStorage.getItem('username') || `Trader_${Math.floor(1000 + Math.random() * 9000)}`
+        };
+
+        // Display user info
+        document.getElementById('username-display').textContent = currentUser.name;
+        document.getElementById('mobile-username-display').textContent = currentUser.name;
+
+        // Load trading data
+        function loadTradingData(days = 30) {
+            const users = JSON.parse(localStorage.getItem('users')) || {};
+            const user = users[currentUser.id] || { tradingHistory: [], transactions: [] };
+            const now = new Date();
+            let cutoffDate = new Date();
+
+            if (days === 'all') {
+                cutoffDate = new Date(0); // All time
+            } else {
+                cutoffDate.setDate(now.getDate() - parseInt(days));
+            }
+
+            // Filter trades by date
+            const recentTrades = user.tradingHistory.filter(trade => {
+                return new Date(trade.date) >= cutoffDate;
+            });
+
+            // Filter previous period for comparison (only if not "all time")
+            let previousPeriodTrades = [];
+            if (days !== 'all') {
+                const prevCutoffDate = new Date();
+                prevCutoffDate.setDate(now.getDate() - (parseInt(days) * 2));
+                previousPeriodTrades = user.tradingHistory.filter(trade => {
+                    const tradeDate = new Date(trade.date);
+                    return tradeDate >= prevCutoffDate && tradeDate < cutoffDate;
+                });
+            }
+
+            return {
+                recentTrades,
+                previousPeriodTrades,
+                allTrades: user.tradingHistory,
+                balance: user.balance || 0
+            };
+        }
+
+        // Calculate KPIs
+        function calculateKPIs(trades, prevTrades = []) {
+            if (trades.length === 0) {
+                return {
+                    totalProfit: 0,
+                    winRate: 0,
+                    avgDailyReturn: 0,
+                    totalTrades: 0,
+                    bestDay: { profit: 0, date: '' },
+                    profitChange: 0,
+                    tradesPerDay: 0,
+                    winCount: 0,
+                    lossCount: 0,
+                    dailyReturns: {},
+                    tradeSizes: [],
+                    hourlyActivity: Array(24).fill(0)
+                };
+            }
+
+            // Group trades by day
+            const dailyData = {};
+            const tradeSizes = [];
+            const hourlyActivity = Array(24).fill(0);
+            let winCount = 0;
+            let totalProfit = 0;
+
+            trades.forEach(trade => {
+                const date = new Date(trade.date).toISOString().split('T')[0];
+                const hour = new Date(trade.date).getHours();
+                
+                if (!dailyData[date]) {
+                    dailyData[date] = {
+                        profit: 0,
+                        trades: 0,
+                        wins: 0
+                    };
+                }
+
+                dailyData[date].profit += trade.profit;
+                dailyData[date].trades += 1;
+                totalProfit += trade.profit;
+                tradeSizes.push(trade.amount);
+                hourlyActivity[hour] += 1;
+
+                if (trade.isWin) {
+                    winCount++;
+                    dailyData[date].wins += 1;
+                }
+            });
+
+            // Find best day
+            let bestDay = { profit: 0, date: '' };
+            Object.entries(dailyData).forEach(([date, data]) => {
+                if (data.profit > bestDay.profit) {
+                    bestDay = { profit: data.profit, date };
+                }
+            });
+
+            // Calculate previous period profit for comparison
+            let prevProfit = 0;
+            if (prevTrades.length > 0) {
+                prevProfit = prevTrades.reduce((sum, trade) => sum + trade.profit, 0);
+            }
+
+            const profitChange = prevProfit !== 0 ? 
+                ((totalProfit - prevProfit) / Math.abs(prevProfit)) * 100 : 0;
+
+            return {
+                totalProfit,
+                winRate: (winCount / trades.length) * 100,
+                avgDailyReturn: trades.length > 0 ? (totalProfit / trades.length) : 0,
+                totalTrades: trades.length,
+                bestDay,
+                profitChange,
+                tradesPerDay: Object.keys(dailyData).length > 0 ? 
+                    trades.length / Object.keys(dailyData).length : 0,
+                winCount,
+                lossCount: trades.length - winCount,
+                dailyReturns: dailyData,
+                tradeSizes,
+                hourlyActivity
+            };
+        }
+
+        // Update KPI cards
+        function updateKPIs(kpis) {
+            document.getElementById('total-profit-kpi').textContent = `$${kpis.totalProfit.toFixed(2)}`;
+            document.getElementById('win-rate-kpi').textContent = `${kpis.winRate.toFixed(1)}%`;
+            document.getElementById('win-rate-bar-kpi').style.width = `${kpis.winRate}%`;
+            document.getElementById('avg-return-kpi').textContent = `${kpis.avgDailyReturn.toFixed(2)}%`;
+            document.getElementById('total-trades-kpi').textContent = kpis.totalTrades;
+            document.getElementById('best-day').textContent = `Best day: $${kpis.bestDay.profit.toFixed(2)}`;
+            document.getElementById('trades-per-day').textContent = `~${kpis.tradesPerDay.toFixed(1)}/day`;
+            
+            // Profit change indicator
+            const profitChangeElement = document.getElementById('profit-change');
+            profitChangeElement.textContent = `${kpis.profitChange > 0 ? '+' : ''}${kpis.profitChange.toFixed(1)}%`;
+            profitChangeElement.className = kpis.profitChange > 0 ? 'font-medium mr-2 text-green-500' : 'font-medium mr-2 text-red-500';
+            
+            // Wallet balance
+            document.getElementById('wallet-balance').textContent = `$${kpis.balance.toFixed(2)}`;
+            document.getElementById('mobile-wallet-balance').textContent = `$${kpis.balance.toFixed(2)}`;
+        }
+
+        // Render charts
+        function renderCharts(kpis, trades) {
+            // Profit Trend Chart (Area)
+            const profitTrendChart = new ApexCharts(document.getElementById('profit-trend-chart'), {
+                series: [{
+                    name: 'Daily Profit',
+                    data: Object.entries(kpis.dailyReturns).map(([date, data]) => ({
+                        x: date,
+                        y: data.profit
+                    }))
+                }],
+                chart: {
+                    type: 'area',
+                    height: '100%',
+                    toolbar: {
+                        show: true,
+                        tools: {
+                            download: true,
+                            selection: true,
+                            zoom: true,
+                            zoomin: true,
+                            zoomout: true,
+                            pan: true,
+                            reset: true
+                        }
+                    },
+                    zoom: {
+                        enabled: true
+                    }
+                },
+                dataLabels: {
+                    enabled: false
+                },
+                stroke: {
+                    curve: 'smooth',
+                    width: 2
+                },
+                fill: {
+                    type: 'gradient',
+                    gradient: {
+                        shadeIntensity: 1,
+                        opacityFrom: 0.7,
+                        opacityTo: 0.3,
+                        stops: [0, 100]
+                    }
+                },
+                colors: ['#6E44FF'],
+                xaxis: {
+                    type: 'datetime'
+                },
+                yaxis: {
+                    labels: {
+                        formatter: function(value) {
+                            return '$' + value.toFixed(2);
+                        }
+                    }
+                },
+                tooltip: {
+                    y: {
+                        formatter: function(value) {
+                            return '$' + value.toFixed(2);
+                        }
+                    }
+                }
+            });
+            profitTrendChart.render();
+
+            // Outcome Distribution Chart (Donut)
+            const outcomeChart = new ApexCharts(document.getElementById('outcome-distribution-chart'), {
+                series: [kpis.winCount, kpis.lossCount],
+                chart: {
+                    type: 'donut',
+                    height: '100%'
+                },
+                labels: ['Winning Trades', 'Losing Trades'],
+                colors: ['#10B981', '#EF4444'],
+                plotOptions: {
+                    pie: {
+                        donut: {
+                            labels: {
+                                show: true,
+                                total: {
+                                    show: true,
+                                    label: 'Total Trades',
+                                    formatter: function(w) {
+                                        return w.globals.seriesTotals.reduce((a, b) => a + b, 0);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                responsive: [{
+                    breakpoint: 480,
+                    options: {
+                        chart: {
+                            width: 200
+                        },
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }]
+            });
+            outcomeChart.render();
+
+            // Daily Returns Chart (Bar)
+            const dailyReturnsChart = new ApexCharts(document.getElementById('daily-returns-chart'), {
+                series: [{
+                    name: 'Profit',
+                    data: Object.entries(kpis.dailyReturns).map(([date, data]) => ({
+                        x: date,
+                        y: data.profit
+                    }))
+                }],
+                chart: {
+                    type: 'bar',
+                    height: '100%',
+                    toolbar: {
+                        show: false
+                    }
+                },
+                plotOptions: {
+                    bar: {
+                        borderRadius: 4,
+                        horizontal: false,
+                        columnWidth: '55%',
+                    }
+                },
+                dataLabels: {
+                    enabled: false
+                },
+                colors: ['#6E44FF'],
+                xaxis: {
+                    type: 'datetime'
+                },
+                yaxis: {
+                    labels: {
+                        formatter: function(value) {
+                            return '$' + value.toFixed(2);
+                        }
+                    }
+                },
+                tooltip: {
+                    y: {
+                        formatter: function(value) {
+                            return '$' + value.toFixed(2);
+                        }
+                    }
+                }
+            });
+            dailyReturnsChart.render();
+
+            // Trade Size Chart (Boxplot)
+            const tradeSizeChart = new ApexCharts(document.getElementById('trade-size-chart'), {
+                series: [{
+                    name: 'Trade Size',
+                    data: [{
+                        x: 'Trade Amounts',
+                        y: kpis.tradeSizes
+                    }]
+                }],
+                chart: {
+                    type: 'boxPlot',
+                    height: '100%',
+                    toolbar: {
+                        show: false
+                    }
+                },
+                colors: ['#6E44FF'],
+                plotOptions: {
+                    boxPlot: {
+                        colors: {
+                            upper: '#6E44FF',
+                            lower: '#FF44B4'
+                        }
+                    }
+                },
+                tooltip: {
+                    shared: false,
+                    intersect: true
+                }
+            });
+            tradeSizeChart.render();
+
+            // Heatmap Chart
+            const heatmapChart = new ApexCharts(document.getElementById('heatmap-chart'), {
+                series: [{
+                    name: 'Trades',
+                    data: kpis.hourlyActivity.map((count, hour) => ({
+                        x: `${hour}:00`,
+                        y: count
+                    }))
+                }],
+                chart: {
+                    type: 'heatmap',
+                    height: '100%',
+                    toolbar: {
+                        show: false
+                    }
+                },
+                dataLabels: {
+                    enabled: false
+                },
+                colors: ['#6E44FF'],
+                xaxis: {
+                    type: 'category'
+                },
+                plotOptions: {
+                    heatmap: {
+                        radius: 4,
+                        enableShades: true,
+                        shadeIntensity: 0.5,
+                        reverseNegativeShade: true,
+                        distributed: false,
+                        useFillColorAsStroke: false,
+                        colorScale: {
+                            ranges: [{
+                                from: 0,
+                                to: 0,
+                                color: '#1F2937',
+                                name: 'low'
+                            }, {
+                                from: 1,
+                                to: 5,
+                                color: '#6E44FF',
+                                name: 'medium'
+                            }, {
+                                from: 6,
+                                to: 100,
+                                color: '#FF44B4',
+                                name: 'high'
+                            }]
+                        }
+                    }
+                }
+            });
+            heatmapChart.render();
+        }
+
+        // Load recent trades table
+        function loadRecentTrades(trades) {
+            const table = document.getElementById('recent-trades');
+            table.innerHTML = '';
+
+            if (trades.length === 0) {
+                table.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="px-6 py-4 text-center text-gray-400">No trading activity found</td>
+                    </tr>
+                `;
+                return;
+            }
+
+            // Show only last 10 trades
+            const recent = trades.slice(0, 10);
+            
+            recent.forEach(trade => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-800';
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        ${new Date(trade.date).toLocaleString()}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 py-1 rounded-full text-xs font-medium ${
+                            trade.type === 'buy' 
+                                ? 'bg-green-900 text-green-300' 
+                                : 'bg-red-900 text-red-300'
+                        }">
+                            ${trade.type.toUpperCase()}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        $${trade.amount.toFixed(2)}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap ${
+                        trade.profit > 0 ? 'text-green-400' : 'text-red-400'
+                    }">
+                        ${trade.profit > 0 ? '+' : ''}$${trade.profit.toFixed(2)}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 py-1 rounded-full text-xs font-medium ${
+                            trade.isWin 
+                                ? 'bg-green-900 text-green-300' 
+                                : 'bg-red-900 text-red-300'
+                        }">
+                            ${trade.isWin ? 'WIN' : 'LOSS'}
+                        </span>
+                    </td>
+                `;
+                table.appendChild(row);
+            });
+        }
+
+        // Refresh dashboard
+        function refreshDashboard(days = 30) {
+            const { recentTrades, previousPeriodTrades, balance } = loadTradingData(days);
+            const kpis = calculateKPIs(recentTrades, previousPeriodTrades);
+            kpis.balance = balance;
+            
+            updateKPIs(kpis);
+            renderCharts(kpis, recentTrades);
+            loadRecentTrades(recentTrades);
+        }
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', () => {
+            // Mobile menu toggle is already set up at the top
+            
+            // Set initial time filter
+            const timeFilter = document.getElementById('time-filter');
+            timeFilter.addEventListener('change', (e) => {
+                refreshDashboard(e.target.value);
+            });
+
+            // Refresh button
+            document.getElementById('refresh-btn').addEventListener('click', () => {
+                refreshDashboard(timeFilter.value);
+            });
+
+            // Initial load
+            refreshDashboard(timeFilter.value);
+        });
+    </script>
+</body>
+</html>
