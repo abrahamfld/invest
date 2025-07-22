@@ -80,9 +80,7 @@
             }
 
             try {
-                //https://8a4cd989-0071-4319-85ab-5d438c7d2f07-00-uv2uqb6d3n8n.spock.replit.dev/
-                //http://localhost:3000/api/register
-                const response = await fetch('https://8a4cd989-0071-4319-85ab-5d438c7d2f07-00-uv2uqb6d3n8n.spock.replit.dev/api/register', {
+                const response = await fetch('http://localhost:3000/api/register', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, password, username }),
