@@ -283,7 +283,172 @@
 
     <!-- Confetti Effect Container -->
     <div id="confetti-container" class="fixed inset-0 pointer-events-none z-50 overflow-hidden hidden"></div>
+    <script>
+    // API configuration http://localhost:3000/api
+    const API_BASE_URL = 'https://8a4cd989-0071-4319-85ab-5d438c7d2f07-00-uv2uqb6d3n8n.spock.replit.dev/api';
+    
+    
+    // Function to save user data to server
+    async function saveUserDataToServer() {
+        const userId = localStorage.getItem('userId');
+        const currentUser = localStorage.getItem('currentUser');
+        
+        if (!userId || !currentUser) return;
+        
+        try {
+            await fetch(`${API_BASE_URL}/save-data`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    userId,
+                    userData: JSON.parse(currentUser)
+                }),
+            });
+        } catch (error) {
+            console.error('Failed to save user data:', error);
+        }
+    }
 
+    // Original updateUserData function from your trading system
+    function updateUserData() {
+        currentUser.balance = walletBalance;
+        currentUser.totalProfit = totalProfit;
+        currentUser.winCount = winCount;
+        currentUser.totalTrades = totalTrades;
+        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+        saveUserDataToServer(); // Also save to server when updating
+    }
+
+    // Initialize the trading application with user data
+    function initializeTradingApp(userData) {
+        // Set username with role badge if admin
+        document.getElementById('username-display').innerHTML = userData.username + 
+            (userData.role === 'admin' ? ' <span class="text-xs bg-purple-600 text-white px-2 py-1 rounded-full">ADMIN</span>' : '');
+        
+        document.getElementById('mobile-username-display').innerHTML = userData.username + 
+            (userData.role === 'admin' ? ' <span class="text-xs bg-purple-600 text-white px-2 py-1 rounded-full">ADMIN</span>' : '');
+        
+        // Load initial balance
+        document.getElementById('wallet-balance').textContent = `$${userData.balance.toFixed(2)}`;
+        document.getElementById('mobile-wallet-balance').textContent = `$${userData.balance.toFixed(2)}`;
+        
+        // Initialize the rest of your trading app
+        initRealTimeChart();
+        
+        // Show overlay initially
+        document.getElementById('chart-overlay').classList.remove('hidden');
+        
+        // Load previous trades if any
+        if (userData.tradingHistory && userData.tradingHistory.length > 0) {
+            const tradeLog = document.getElementById('trade-history');
+            // Only show the most recent 20 trades
+            const recentTrades = userData.tradingHistory.slice(0, 20);
+            
+            recentTrades.forEach(trade => {
+                const row = document.createElement('tr');
+                row.className = trade.isWin ? 'trade-win' : 'trade-loss';
+                row.innerHTML = `
+                    <td class="py-2">${new Date(trade.date).toLocaleTimeString()}</td>
+                    <td class="py-2 ${trade.isWin ? 'text-green-500' : 'text-red-500'}">${trade.isWin ? 'BUY (WIN)' : 'SELL (LOSS)'}</td>
+                    <td class="py-2">$${trade.amount.toFixed(2)}</td>
+                    <td class="py-2 ${trade.isWin ? 'text-green-500' : 'text-red-500'}">${trade.profit > 0 ? '+' : ''}${trade.profit.toFixed(2)}</td>
+                `;
+                tradeLog.appendChild(row);
+            });
+        }
+        
+        // Load transactions if any
+        if (userData.transactions && userData.transactions.length > 0) {
+            const tradeLog = document.getElementById('trade-history');
+            // Only show the most recent 5 transactions
+            const recentTransactions = userData.transactions.slice(0, 5);
+            
+            recentTransactions.forEach(transaction => {
+                const row = document.createElement('tr');
+                row.className = transaction.type === 'deposit' ? 'bg-blue-900 bg-opacity-30' : 'bg-purple-900 bg-opacity-30';
+                row.innerHTML = `
+                    <td class="py-2">${new Date(transaction.date).toLocaleTimeString()}</td>
+                    <td class="py-2">${transaction.type.toUpperCase()}</td>
+                    <td class="py-2">$${transaction.amount.toFixed(2)}</td>
+                    <td class="py-2 ${transaction.type === 'deposit' ? 'text-green-500' : 'text-red-500'}">${transaction.type === 'deposit' ? '+' : '-'}$${transaction.amount.toFixed(2)}</td>
+                `;
+                tradeLog.insertBefore(row, tradeLog.firstChild);
+            });
+        }
+        
+        // Update stats
+        updateStats();
+        
+        // Save data periodically (every 30 seconds)
+        setInterval(saveUserDataToServer, 30000);
+        
+        // Save data when window closes
+        window.addEventListener('beforeunload', () => {
+            saveUserDataToServer();
+        });
+    }
+
+    // Check authentication on page load
+    // Check authentication on page load
+document.addEventListener('DOMContentLoaded', async () => {
+    const userId = localStorage.getItem('userId');
+    const userEmail = localStorage.getItem('userEmail');
+    
+    // Redirect to login if not authenticated
+    if (!userId || !userEmail) {
+        window.location.href = 'login.html';
+        return;
+    }
+    
+    try {
+        // Try to load user data from server
+        const response = await fetch(`${API_BASE_URL}/user?userId=${userId}&email=${encodeURIComponent(userEmail)}`);
+        if (response.ok) {
+            const user = await response.json();
+            
+            // Initialize with server data
+            localStorage.setItem('currentUser', JSON.stringify(user.userData));
+            initializeTradingApp(user.userData);
+        } else {
+            // If server returns error, try to parse the error message
+            const errorData = await response.json().catch(() => ({}));
+            console.error('Server error:', errorData.error || 'Unknown error');
+            
+            // Fallback to local storage
+            const localUser = localStorage.getItem('currentUser');
+            if (localUser) {
+                initializeTradingApp(JSON.parse(localUser));
+            } else {
+                window.location.href = 'login.html';
+            }
+        }
+    } catch (error) {
+        console.error('Failed to fetch user data:', error);
+        // Fallback to local storage if server is unreachable
+        const localUser = localStorage.getItem('currentUser');
+        if (localUser) {
+            initializeTradingApp(JSON.parse(localUser));
+        } else {
+            window.location.href = 'login.html';
+        }
+    }
+    
+    // Update logout functionality
+    const logoutLinks = document.querySelectorAll('a[href="logout.html"]');
+    logoutLinks.forEach(link => {
+        link.addEventListener('click', async (e) => {
+            e.preventDefault();
+            await saveUserDataToServer();
+            // Clear user session
+            localStorage.removeItem('currentUser');
+            localStorage.removeItem('userId');
+            localStorage.removeItem('userEmail');
+            // Redirect to login page
+            window.location.href = 'login.html';
+        });
+    });
+});
+</script>
     <script>
         // Mobile menu toggle
         document.addEventListener('DOMContentLoaded', () => {
@@ -311,7 +476,6 @@
                     e.preventDefault();
                     // Clear user session
                     localStorage.removeItem('currentUser');
-                    localStorage.removeItem('username');
                     // Redirect to login page
                     window.location.href = 'login.html';
                 });
@@ -319,25 +483,20 @@
         });
 
         // User Management
-        const currentUser = {
-            id: localStorage.getItem('currentUser') || `user_${Math.floor(Math.random() * 10000)}`,
-            name: localStorage.getItem('username') || `Trader_${Math.floor(1000 + Math.random() * 9000)}`
-        };
-
-        // Initialize user data if not exists
-        if (!localStorage.getItem('users')) {
-            localStorage.setItem('users', JSON.stringify({}));
-        }
-
-        function getUserData(userId) {
-            const users = JSON.parse(localStorage.getItem('users'));
-            return users[userId] || null;
-        }
-
-        function initializeUser(userId, username) {
-            const users = JSON.parse(localStorage.getItem('users'));
-            users[userId] = {
-                username,
+        function getCurrentUser() {
+            const currentUserStr = localStorage.getItem('currentUser');
+            if (currentUserStr) {
+                return JSON.parse(currentUserStr);
+            }
+            
+            // Create new user if none exists
+            const newUser = {
+                id: `user_${Math.floor(Math.random() * 10000)}`,
+                firstName: "Trader",
+                lastName: Math.floor(1000 + Math.random() * 9000).toString(),
+                username: `Trader_${Math.floor(1000 + Math.random() * 9000)}`,
+                email: `trader${Math.floor(1000 + Math.random() * 9000)}@quantumbot.com`,
+                role: 'user', // Default role is 'user'
                 balance: 0,
                 totalProfit: 0,
                 winCount: 0,
@@ -345,25 +504,25 @@
                 transactions: [],
                 tradingHistory: []
             };
-            localStorage.setItem('users', JSON.stringify(users));
-            localStorage.setItem('currentUser', userId);
-            localStorage.setItem('username', username);
-            return users[userId];
+            
+            // Make the first user an admin for demo purposes
+            if (!localStorage.getItem('currentUser')) {
+                newUser.role = 'admin';
+            }
+            
+            localStorage.setItem('currentUser', JSON.stringify(newUser));
+            return newUser;
         }
 
-        if (!getUserData(currentUser.id)) {
-            initializeUser(currentUser.id, currentUser.name);
-        }
+        // Load current user
+        const currentUser = getCurrentUser();
 
-        // Load user data
-        const userData = getUserData(currentUser.id);
-        
         // Trading Bot Simulation with Binance API
         let botRunning = false;
-        let walletBalance = userData.balance || 0;
-        let totalProfit = userData.totalProfit || 0;
-        let winCount = userData.winCount || 0;
-        let totalTrades = userData.totalTrades || 0;
+        let walletBalance = currentUser.balance || 0;
+        let totalProfit = currentUser.totalProfit || 0;
+        let winCount = currentUser.winCount || 0;
+        let totalTrades = currentUser.totalTrades || 0;
         let dailyTarget = 0;
         let currentProfit = 0;
         let botInterval;
@@ -375,34 +534,28 @@
 
         // Update user data in localStorage
         function updateUserData() {
-            const users = JSON.parse(localStorage.getItem('users'));
-            users[currentUser.id] = {
-                ...users[currentUser.id],
-                balance: walletBalance,
-                totalProfit,
-                winCount,
-                totalTrades
-            };
-            localStorage.setItem('users', JSON.stringify(users));
+            currentUser.balance = walletBalance;
+            currentUser.totalProfit = totalProfit;
+            currentUser.winCount = winCount;
+            currentUser.totalTrades = totalTrades;
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
         }
 
         // Add transaction to history
         function addTransaction(type, amount) {
-            const users = JSON.parse(localStorage.getItem('users'));
             const transaction = {
                 id: Date.now(),
                 type,
                 amount,
                 date: new Date().toISOString()
             };
-            users[currentUser.id].transactions.unshift(transaction);
-            localStorage.setItem('users', JSON.stringify(users));
+            currentUser.transactions.unshift(transaction);
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
             return transaction;
         }
 
         // Add trade to trading history
         function addTrade(type, amount, profit, isWin) {
-            const users = JSON.parse(localStorage.getItem('users'));
             const trade = {
                 id: Date.now(),
                 type,
@@ -411,8 +564,8 @@
                 isWin,
                 date: new Date().toISOString()
             };
-            users[currentUser.id].tradingHistory.unshift(trade);
-            localStorage.setItem('users', JSON.stringify(users));
+            currentUser.tradingHistory.unshift(trade);
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
             return trade;
         }
 
@@ -743,9 +896,12 @@
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
-            // Set username
-            document.getElementById('username-display').textContent = currentUser.name;
-            document.getElementById('mobile-username-display').textContent = currentUser.name;
+            // Set username with role badge if admin
+            document.getElementById('username-display').innerHTML = currentUser.username + 
+                (currentUser.role === 'admin' ? ' <span class="text-xs bg-purple-600 text-white px-2 py-1 rounded-full">ADMIN</span>' : '');
+            
+            document.getElementById('mobile-username-display').innerHTML = currentUser.username + 
+                (currentUser.role === 'admin' ? ' <span class="text-xs bg-purple-600 text-white px-2 py-1 rounded-full">ADMIN</span>' : '');
             
             // Load initial balance
             document.getElementById('wallet-balance').textContent = `$${walletBalance.toFixed(2)}`;
@@ -755,6 +911,47 @@
             
             // Show overlay initially
             document.getElementById('chart-overlay').classList.remove('hidden');
+            
+            // Load previous trades if any
+            if (currentUser.tradingHistory && currentUser.tradingHistory.length > 0) {
+                const tradeLog = document.getElementById('trade-history');
+                // Only show the most recent 20 trades
+                const recentTrades = currentUser.tradingHistory.slice(0, 20);
+                
+                recentTrades.forEach(trade => {
+                    const row = document.createElement('tr');
+                    row.className = trade.isWin ? 'trade-win' : 'trade-loss';
+                    row.innerHTML = `
+                        <td class="py-2">${new Date(trade.date).toLocaleTimeString()}</td>
+                        <td class="py-2 ${trade.isWin ? 'text-green-500' : 'text-red-500'}">${trade.isWin ? 'BUY (WIN)' : 'SELL (LOSS)'}</td>
+                        <td class="py-2">$${trade.amount.toFixed(2)}</td>
+                        <td class="py-2 ${trade.isWin ? 'text-green-500' : 'text-red-500'}">${trade.profit > 0 ? '+' : ''}${trade.profit.toFixed(2)}</td>
+                    `;
+                    tradeLog.appendChild(row);
+                });
+            }
+            
+            // Load transactions if any
+            if (currentUser.transactions && currentUser.transactions.length > 0) {
+                const tradeLog = document.getElementById('trade-history');
+                // Only show the most recent 5 transactions
+                const recentTransactions = currentUser.transactions.slice(0, 5);
+                
+                recentTransactions.forEach(transaction => {
+                    const row = document.createElement('tr');
+                    row.className = transaction.type === 'deposit' ? 'bg-blue-900 bg-opacity-30' : 'bg-purple-900 bg-opacity-30';
+                    row.innerHTML = `
+                        <td class="py-2">${new Date(transaction.date).toLocaleTimeString()}</td>
+                        <td class="py-2">${transaction.type.toUpperCase()}</td>
+                        <td class="py-2">$${transaction.amount.toFixed(2)}</td>
+                        <td class="py-2 ${transaction.type === 'deposit' ? 'text-green-500' : 'text-red-500'}">${transaction.type === 'deposit' ? '+' : '-'}$${transaction.amount.toFixed(2)}</td>
+                    `;
+                    tradeLog.insertBefore(row, tradeLog.firstChild);
+                });
+            }
+            
+            // Update stats
+            updateStats();
         });
     </script>
 </body>

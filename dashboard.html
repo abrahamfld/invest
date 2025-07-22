@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QuantumBot | Performance Dashboard</title>
+    <title>QuantumBot | Investment Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -35,6 +35,16 @@
         #mobile-menu:not(.hidden) {
             max-height: 500px;
         }
+        .investment-progress {
+            height: 6px;
+            border-radius: 3px;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .investment-progress-bar {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.5s ease;
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-gray-100 font-sans antialiased">
@@ -51,7 +61,10 @@
         
         <div class="hidden md:flex items-center space-x-6">
             <a href="index.html" class="px-3 py-2 text-gray-300 hover:text-purple-400 flex items-center">
-                <i class="fas fa-chart-line mr-2"></i> Trading
+                <i class="fas fa-chart-line mr-2"></i> Dashboard
+            </a>
+            <a href="investments.html" class="px-3 py-2 text-purple-400 flex items-center">
+                <i class="fas fa-chart-pie mr-2"></i> Investments
             </a>
             <a href="transactions.html" class="px-3 py-2 text-gray-300 hover:text-purple-400 flex items-center">
                 <i class="fas fa-exchange-alt mr-2"></i> Transactions
@@ -81,7 +94,10 @@
     <div id="mobile-menu" class="md:hidden hidden bg-gray-800 border-b border-gray-700 px-6 py-3">
         <div class="flex flex-col space-y-4">
             <a href="index.html" class="px-3 py-2 text-gray-300 hover:text-purple-400 flex items-center">
-                <i class="fas fa-chart-line mr-2"></i> Trading
+                <i class="fas fa-chart-line mr-2"></i> Dashboard
+            </a>
+            <a href="investments.html" class="px-3 py-2 text-purple-400 flex items-center">
+                <i class="fas fa-chart-pie mr-2"></i> Investments
             </a>
             <a href="transactions.html" class="px-3 py-2 text-gray-300 hover:text-purple-400 flex items-center">
                 <i class="fas fa-exchange-alt mr-2"></i> Transactions
@@ -109,10 +125,10 @@
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
             <div>
                 <h1 class="text-2xl md:text-3xl font-bold mb-2">
-                    <i class="fas fa-tachometer-alt text-purple-400 mr-3"></i>
-                    Performance Dashboard
+                    <i class="fas fa-chart-pie text-purple-400 mr-3"></i>
+                    Investment Portfolio
                 </h1>
-                <p class="text-gray-400">Analyze your trading bot's performance with interactive insights</p>
+                <p class="text-gray-400">Track your total investments, profits, and net worth over time</p>
             </div>
             <div class="mt-4 md:mt-0 flex space-x-3">
                 <select id="time-filter" class="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500">
@@ -127,8 +143,45 @@
             </div>
         </div>
 
-        <!-- KPI Cards -->
+        <!-- Investment Summary Cards -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <!-- Net Worth -->
+            <div class="dashboard-card rounded-xl p-6 card-hover">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-gray-400">Net Worth</p>
+                        <h3 id="net-worth-kpi" class="text-3xl font-bold mt-1">$0.00</h3>
+                    </div>
+                    <div class="bg-purple-600 bg-opacity-20 p-3 rounded-full">
+                        <i class="fas fa-piggy-bank text-purple-400 text-xl"></i>
+                    </div>
+                </div>
+                <div class="mt-4 pt-4 border-t border-gray-700">
+                    <p class="text-sm flex items-center">
+                        <span id="net-worth-change" class="font-medium mr-2">0%</span>
+                        <span id="net-worth-change-text" class="text-gray-400">vs previous period</span>
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Total Invested -->
+            <div class="dashboard-card rounded-xl p-6 card-hover">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-gray-400">Total Invested</p>
+                        <h3 id="total-invested-kpi" class="text-3xl font-bold mt-1">$0.00</h3>
+                    </div>
+                    <div class="bg-blue-600 bg-opacity-20 p-3 rounded-full">
+                        <i class="fas fa-hand-holding-usd text-blue-400 text-xl"></i>
+                    </div>
+                </div>
+                <div class="mt-4 pt-4 border-t border-gray-700">
+                    <p class="text-sm text-gray-400">
+                        <span id="last-deposit">Last deposit: $0.00</span>
+                    </p>
+                </div>
+            </div>
+            
             <!-- Total Profit -->
             <div class="dashboard-card rounded-xl p-6 card-hover">
                 <div class="flex justify-between items-start">
@@ -136,130 +189,92 @@
                         <p class="text-gray-400">Total Profit</p>
                         <h3 id="total-profit-kpi" class="text-3xl font-bold mt-1">$0.00</h3>
                     </div>
-                    <div class="bg-purple-600 bg-opacity-20 p-3 rounded-full">
-                        <i class="fas fa-coins text-purple-400 text-xl"></i>
+                    <div class="bg-green-600 bg-opacity-20 p-3 rounded-full">
+                        <i class="fas fa-coins text-green-400 text-xl"></i>
                     </div>
                 </div>
                 <div class="mt-4 pt-4 border-t border-gray-700">
                     <p class="text-sm flex items-center">
                         <span id="profit-change" class="font-medium mr-2">0%</span>
-                        <span id="profit-change-text" class="text-gray-400">vs previous period</span>
+                        <span id="profit-change-text" class="text-gray-400">ROI</span>
                     </p>
                 </div>
             </div>
             
-            <!-- Win Rate -->
+            <!-- ROI Percentage -->
             <div class="dashboard-card rounded-xl p-6 card-hover">
                 <div class="flex justify-between items-start">
                     <div>
-                        <p class="text-gray-400">Win Rate</p>
-                        <h3 id="win-rate-kpi" class="text-3xl font-bold mt-1">0%</h3>
-                    </div>
-                    <div class="bg-green-600 bg-opacity-20 p-3 rounded-full">
-                        <i class="fas fa-trophy text-green-400 text-xl"></i>
-                    </div>
-                </div>
-                <div class="mt-4 pt-4 border-t border-gray-700">
-                    <div class="w-full bg-gray-700 rounded-full h-2">
-                        <div id="win-rate-bar-kpi" class="bg-green-500 h-2 rounded-full" style="width: 0%"></div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Avg. Daily Return -->
-            <div class="dashboard-card rounded-xl p-6 card-hover">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <p class="text-gray-400">Avg. Daily Return</p>
-                        <h3 id="avg-return-kpi" class="text-3xl font-bold mt-1">0%</h3>
-                    </div>
-                    <div class="bg-blue-600 bg-opacity-20 p-3 rounded-full">
-                        <i class="fas fa-chart-line text-blue-400 text-xl"></i>
-                    </div>
-                </div>
-                <div class="mt-4 pt-4 border-t border-gray-700">
-                    <p class="text-sm text-gray-400">
-                        <span id="best-day">Best day: $0.00</span>
-                    </p>
-                </div>
-            </div>
-            
-            <!-- Total Trades -->
-            <div class="dashboard-card rounded-xl p-6 card-hover">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <p class="text-gray-400">Total Trades</p>
-                        <h3 id="total-trades-kpi" class="text-3xl font-bold mt-1">0</h3>
+                        <p class="text-gray-400">Return on Investment</p>
+                        <h3 id="roi-kpi" class="text-3xl font-bold mt-1">0%</h3>
                     </div>
                     <div class="bg-orange-600 bg-opacity-20 p-3 rounded-full">
-                        <i class="fas fa-exchange-alt text-orange-400 text-xl"></i>
+                        <i class="fas fa-percentage text-orange-400 text-xl"></i>
                     </div>
                 </div>
                 <div class="mt-4 pt-4 border-t border-gray-700">
-                    <p class="text-sm text-gray-400">
-                        <span id="trades-per-day">~0/day</span>
-                    </p>
+                    <div class="investment-progress w-full">
+                        <div id="roi-progress-bar" class="investment-progress-bar" style="width: 0%"></div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Main Charts -->
+        <!-- Main Investment Charts -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-            <!-- Profit/Loss Over Time -->
+            <!-- Investment Growth -->
             <div class="dashboard-card rounded-xl p-6 card-hover">
                 <h2 class="text-xl font-bold mb-4 flex items-center">
-                    <i class="fas fa-chart-area text-purple-400 mr-3"></i>
-                    Profit/Loss Trend
+                    <i class="fas fa-chart-line text-purple-400 mr-3"></i>
+                    Investment Growth
                 </h2>
-                <div id="profit-trend-chart" class="h-80"></div>
+                <div id="investment-growth-chart" class="h-80"></div>
             </div>
             
-            <!-- Win/Loss Distribution -->
+            <!-- Asset Allocation -->
             <div class="dashboard-card rounded-xl p-6 card-hover">
                 <h2 class="text-xl font-bold mb-4 flex items-center">
-                    <i class="fas fa-chart-pie text-purple-400 mr-3"></i>
-                    Trade Outcomes
+                    <i class="fas fa-pie-chart text-purple-400 mr-3"></i>
+                    Asset Allocation
                 </h2>
-                <div id="outcome-distribution-chart" class="h-80"></div>
+                <div id="asset-allocation-chart" class="h-80"></div>
             </div>
         </div>
 
-        <!-- Secondary Charts -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-            <!-- Daily Returns -->
-            <div class="dashboard-card rounded-xl p-6 card-hover">
-                <h2 class="text-xl font-bold mb-4 flex items-center">
-                    <i class="fas fa-chart-bar text-purple-400 mr-3"></i>
-                    Daily Returns
-                </h2>
-                <div id="daily-returns-chart" class="h-64"></div>
-            </div>
+        <!-- Investment Performance Section -->
+        <div class="dashboard-card rounded-xl p-6 mb-8 card-hover">
+            <h2 class="text-xl font-bold mb-6 flex items-center">
+                <i class="fas fa-trophy text-purple-400 mr-3"></i>
+                Investment Performance
+            </h2>
             
-            <!-- Trade Size Distribution -->
-            <div class="dashboard-card rounded-xl p-6 card-hover">
-                <h2 class="text-xl font-bold mb-4 flex items-center">
-                    <i class="fas fa-weight-hanging text-purple-400 mr-3"></i>
-                    Trade Size Analysis
-                </h2>
-                <div id="trade-size-chart" class="h-64"></div>
-            </div>
-            
-            <!-- Time of Day Heatmap -->
-            <div class="dashboard-card rounded-xl p-6 card-hover">
-                <h2 class="text-xl font-bold mb-4 flex items-center">
-                    <i class="fas fa-clock text-purple-400 mr-3"></i>
-                    Trading Activity Heatmap
-                </h2>
-                <div id="heatmap-chart" class="h-64"></div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Monthly Performance -->
+                <div>
+                    <h3 class="text-lg font-semibold mb-3 text-gray-300">Monthly Performance</h3>
+                    <div id="monthly-performance-chart" class="h-64"></div>
+                </div>
+                
+                <!-- Profit Sources -->
+                <div>
+                    <h3 class="text-lg font-semibold mb-3 text-gray-300">Profit Sources</h3>
+                    <div id="profit-sources-chart" class="h-64"></div>
+                </div>
+                
+                <!-- Investment Timeline -->
+                <div>
+                    <h3 class="text-lg font-semibold mb-3 text-gray-300">Investment Timeline</h3>
+                    <div id="investment-timeline-chart" class="h-64"></div>
+                </div>
             </div>
         </div>
 
-        <!-- Recent Trades Table -->
+        <!-- Recent Investment Activity -->
         <div class="dashboard-card rounded-xl overflow-hidden">
             <div class="p-6">
                 <h2 class="text-xl font-bold mb-4 flex items-center">
                     <i class="fas fa-list text-purple-400 mr-3"></i>
-                    Recent Trading Activity
+                    Recent Investment Activity
                 </h2>
                 <div class="overflow-x-auto">
                     <table class="w-full">
@@ -268,12 +283,12 @@
                                 <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Date</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Type</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Amount</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Profit</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Result</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Balance</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Status</th>
                             </tr>
                         </thead>
-                        <tbody id="recent-trades" class="divide-y divide-gray-700">
-                            <!-- Trades will be loaded here -->
+                        <tbody id="recent-investments" class="divide-y divide-gray-700">
+                            <!-- Investments will be loaded here -->
                         </tbody>
                     </table>
                 </div>
@@ -308,27 +323,127 @@
                     e.preventDefault();
                     // Clear user session
                     localStorage.removeItem('currentUser');
-                    localStorage.removeItem('username');
+                    localStorage.removeItem('userId');
+                    localStorage.removeItem('userEmail');
                     // Redirect to login page
                     window.location.href = 'login.html';
                 });
             });
         });
 
-        // Load user data
-        const currentUser = {
-            id: localStorage.getItem('currentUser') || `user_${Math.floor(Math.random() * 10000)}`,
-            name: localStorage.getItem('username') || `Trader_${Math.floor(1000 + Math.random() * 9000)}`
-        };
+        // Load user data from localStorage
+        function loadUserData() {
+            const currentUserStr = localStorage.getItem('currentUser');
+            if (!currentUserStr) {
+                window.location.href = 'login.html';
+                return null;
+            }
+            
+            try {
+                return JSON.parse(currentUserStr);
+            } catch (e) {
+                console.error("Error parsing user data:", e);
+                window.location.href = 'login.html';
+                return null;
+            }
+        }
 
-        // Display user info
-        document.getElementById('username-display').textContent = currentUser.name;
-        document.getElementById('mobile-username-display').textContent = currentUser.name;
+        // Process investment data from user's trading history and transactions
+        function processInvestmentData(userData) {
+            if (!userData) return {};
+            
+            // Calculate total invested from deposits
+            const deposits = userData.transactions?.filter(t => t.type === 'deposit') || [];
+            const totalInvested = deposits.reduce((sum, deposit) => sum + deposit.amount, 0);
+            
+            // Get total profit from user data
+            const totalProfit = userData.totalProfit || 0;
+            
+            // Calculate net worth
+            const netWorth = totalInvested + totalProfit;
+            
+            // Group transactions by month for monthly performance
+            const monthlyPerformance = {};
+            const allTransactions = [...(userData.transactions || []), ...(userData.tradingHistory || [])];
+            
+            allTransactions.forEach(transaction => {
+                const date = new Date(transaction.date);
+                const monthYear = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                
+                if (!monthlyPerformance[monthYear]) {
+                    monthlyPerformance[monthYear] = {
+                        invested: 0,
+                        profit: 0,
+                        netWorth: 0
+                    };
+                }
+                
+                if (transaction.type === 'deposit') {
+                    monthlyPerformance[monthYear].invested += transaction.amount;
+                } else if (transaction.profit !== undefined) {
+                    monthlyPerformance[monthYear].profit += transaction.profit;
+                }
+            });
+            
+            // Calculate cumulative values for each month
+            let runningInvested = 0;
+            let runningProfit = 0;
+            
+            Object.keys(monthlyPerformance).sort().forEach(month => {
+                runningInvested += monthlyPerformance[month].invested;
+                runningProfit += monthlyPerformance[month].profit;
+                monthlyPerformance[month].netWorth = runningInvested + runningProfit;
+                monthlyPerformance[month].invested = runningInvested;
+                monthlyPerformance[month].profit = runningProfit;
+            });
+            
+            // Create timeline data
+            const timelineData = [];
+            let runningBalance = 0;
+            
+            // Process deposits first
+            deposits.sort((a, b) => new Date(a.date) - new Date(b.date)).forEach(deposit => {
+                runningBalance += deposit.amount;
+                timelineData.push({
+                    x: new Date(deposit.date).getTime(),
+                    y: runningBalance,
+                    type: 'deposit',
+                    amount: deposit.amount
+                });
+            });
+            
+            // Then process trading profits
+            const trades = userData.tradingHistory?.sort((a, b) => new Date(a.date) - new Date(b.date)) || [];
+            trades.forEach(trade => {
+                if (trade.profit) {
+                    runningBalance += trade.profit;
+                    timelineData.push({
+                        x: new Date(trade.date).getTime(),
+                        y: runningBalance,
+                        type: 'profit',
+                        amount: trade.profit
+                    });
+                }
+            });
+            
+            return {
+                totalInvested,
+                totalProfit,
+                netWorth,
+                monthlyPerformance,
+                timelineData,
+                transactions: allTransactions,
+                lastDeposit: deposits.length > 0 ? deposits[deposits.length - 1] : null
+            };
+        }
 
-        // Load trading data
-        function loadTradingData(days = 30) {
-            const users = JSON.parse(localStorage.getItem('users')) || {};
-            const user = users[currentUser.id] || { tradingHistory: [], transactions: [] };
+        // Load investment data with time filter
+        function loadInvestmentData(days = 30) {
+            const currentUser = loadUserData();
+            if (!currentUser) return {};
+            
+            const investmentData = processInvestmentData(currentUser);
+            
             const now = new Date();
             let cutoffDate = new Date();
 
@@ -338,147 +453,159 @@
                 cutoffDate.setDate(now.getDate() - parseInt(days));
             }
 
-            // Filter trades by date
-            const recentTrades = user.tradingHistory.filter(trade => {
-                return new Date(trade.date) >= cutoffDate;
-            });
+            // Filter investments by date
+            const recentInvestments = investmentData.transactions?.filter(transaction => {
+                return new Date(transaction.date) >= cutoffDate;
+            }) || [];
 
             // Filter previous period for comparison (only if not "all time")
-            let previousPeriodTrades = [];
+            let previousPeriodInvestments = [];
             if (days !== 'all') {
                 const prevCutoffDate = new Date();
                 prevCutoffDate.setDate(now.getDate() - (parseInt(days) * 2));
-                previousPeriodTrades = user.tradingHistory.filter(trade => {
-                    const tradeDate = new Date(trade.date);
-                    return tradeDate >= prevCutoffDate && tradeDate < cutoffDate;
-                });
+                previousPeriodInvestments = investmentData.transactions?.filter(transaction => {
+                    const transactionDate = new Date(transaction.date);
+                    return transactionDate >= prevCutoffDate && transactionDate < cutoffDate;
+                }) || [];
             }
 
             return {
-                recentTrades,
-                previousPeriodTrades,
-                allTrades: user.tradingHistory,
-                balance: user.balance || 0
+                recentInvestments,
+                previousPeriodInvestments,
+                allInvestments: investmentData.transactions || [],
+                totalInvested: investmentData.totalInvested || 0,
+                totalProfit: investmentData.totalProfit || 0,
+                netWorth: investmentData.netWorth || 0,
+                monthlyPerformance: investmentData.monthlyPerformance || {},
+                timelineData: investmentData.timelineData || [],
+                lastDeposit: investmentData.lastDeposit,
+                balance: currentUser.balance || 0
             };
         }
 
-        // Calculate KPIs
-        function calculateKPIs(trades, prevTrades = []) {
-            if (trades.length === 0) {
+        // Calculate investment KPIs
+        function calculateKPIs(investments, prevInvestments = [], investmentData) {
+            if (!investmentData) {
                 return {
+                    totalInvested: 0,
                     totalProfit: 0,
-                    winRate: 0,
-                    avgDailyReturn: 0,
-                    totalTrades: 0,
-                    bestDay: { profit: 0, date: '' },
+                    netWorth: 0,
+                    roi: 0,
+                    netWorthChange: 0,
                     profitChange: 0,
-                    tradesPerDay: 0,
-                    winCount: 0,
-                    lossCount: 0,
-                    dailyReturns: {},
-                    tradeSizes: [],
-                    hourlyActivity: Array(24).fill(0)
+                    lastDeposit: { amount: 0, date: '' },
+                    monthlyPerformance: {},
+                    timelineData: []
                 };
             }
 
-            // Group trades by day
-            const dailyData = {};
-            const tradeSizes = [];
-            const hourlyActivity = Array(24).fill(0);
-            let winCount = 0;
-            let totalProfit = 0;
-
-            trades.forEach(trade => {
-                const date = new Date(trade.date).toISOString().split('T')[0];
-                const hour = new Date(trade.date).getHours();
-                
-                if (!dailyData[date]) {
-                    dailyData[date] = {
-                        profit: 0,
-                        trades: 0,
-                        wins: 0
-                    };
-                }
-
-                dailyData[date].profit += trade.profit;
-                dailyData[date].trades += 1;
-                totalProfit += trade.profit;
-                tradeSizes.push(trade.amount);
-                hourlyActivity[hour] += 1;
-
-                if (trade.isWin) {
-                    winCount++;
-                    dailyData[date].wins += 1;
-                }
-            });
-
-            // Find best day
-            let bestDay = { profit: 0, date: '' };
-            Object.entries(dailyData).forEach(([date, data]) => {
-                if (data.profit > bestDay.profit) {
-                    bestDay = { profit: data.profit, date };
-                }
-            });
-
-            // Calculate previous period profit for comparison
+            // Calculate previous period values for comparison
+            let prevNetWorth = 0;
             let prevProfit = 0;
-            if (prevTrades.length > 0) {
-                prevProfit = prevTrades.reduce((sum, trade) => sum + trade.profit, 0);
+            if (prevInvestments.length > 0) {
+                const prevData = processInvestmentData({
+                    transactions: prevInvestments,
+                    tradingHistory: prevInvestments.filter(t => t.profit !== undefined)
+                });
+                prevNetWorth = prevData.netWorth;
+                prevProfit = prevData.totalProfit;
             }
 
+            const currentNetWorth = investmentData.netWorth || 0;
+            const currentProfit = investmentData.totalProfit || 0;
+            
+            const netWorthChange = prevNetWorth !== 0 ? 
+                ((currentNetWorth - prevNetWorth) / prevNetWorth) * 100 : 0;
+            
             const profitChange = prevProfit !== 0 ? 
-                ((totalProfit - prevProfit) / Math.abs(prevProfit)) * 100 : 0;
+                ((currentProfit - prevProfit) / Math.abs(prevProfit)) * 100 : 0;
+
+            const roi = investmentData.totalInvested > 0 ? 
+                (investmentData.totalProfit / investmentData.totalInvested) * 100 : 0;
 
             return {
-                totalProfit,
-                winRate: (winCount / trades.length) * 100,
-                avgDailyReturn: trades.length > 0 ? (totalProfit / trades.length) : 0,
-                totalTrades: trades.length,
-                bestDay,
+                totalInvested: investmentData.totalInvested || 0,
+                totalProfit: investmentData.totalProfit || 0,
+                netWorth: investmentData.netWorth || 0,
+                roi,
+                netWorthChange,
                 profitChange,
-                tradesPerDay: Object.keys(dailyData).length > 0 ? 
-                    trades.length / Object.keys(dailyData).length : 0,
-                winCount,
-                lossCount: trades.length - winCount,
-                dailyReturns: dailyData,
-                tradeSizes,
-                hourlyActivity
+                lastDeposit: investmentData.lastDeposit || { amount: 0, date: '' },
+                monthlyPerformance: investmentData.monthlyPerformance || {},
+                timelineData: investmentData.timelineData || []
             };
         }
 
         // Update KPI cards
-        function updateKPIs(kpis) {
-            document.getElementById('total-profit-kpi').textContent = `$${kpis.totalProfit.toFixed(2)}`;
-            document.getElementById('win-rate-kpi').textContent = `${kpis.winRate.toFixed(1)}%`;
-            document.getElementById('win-rate-bar-kpi').style.width = `${kpis.winRate}%`;
-            document.getElementById('avg-return-kpi').textContent = `${kpis.avgDailyReturn.toFixed(2)}%`;
-            document.getElementById('total-trades-kpi').textContent = kpis.totalTrades;
-            document.getElementById('best-day').textContent = `Best day: $${kpis.bestDay.profit.toFixed(2)}`;
-            document.getElementById('trades-per-day').textContent = `~${kpis.tradesPerDay.toFixed(1)}/day`;
+        function updateKPIs(kpis, currentUser) {
+            // Net Worth
+            document.getElementById('net-worth-kpi').textContent = `$${kpis.netWorth.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            const netWorthChangeElement = document.getElementById('net-worth-change');
+            netWorthChangeElement.textContent = `${kpis.netWorthChange > 0 ? '+' : ''}${kpis.netWorthChange.toFixed(1)}%`;
+            netWorthChangeElement.className = kpis.netWorthChange > 0 ? 'font-medium mr-2 text-green-500' : 'font-medium mr-2 text-red-500';
             
-            // Profit change indicator
+            // Total Invested
+            document.getElementById('total-invested-kpi').textContent = `$${kpis.totalInvested.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            document.getElementById('last-deposit').textContent = `Last deposit: $${kpis.lastDeposit?.amount?.toFixed(2) || '0.00'}`;
+            
+            // Total Profit
+            document.getElementById('total-profit-kpi').textContent = `$${kpis.totalProfit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
             const profitChangeElement = document.getElementById('profit-change');
-            profitChangeElement.textContent = `${kpis.profitChange > 0 ? '+' : ''}${kpis.profitChange.toFixed(1)}%`;
-            profitChangeElement.className = kpis.profitChange > 0 ? 'font-medium mr-2 text-green-500' : 'font-medium mr-2 text-red-500';
+            profitChangeElement.textContent = `${kpis.roi > 0 ? '+' : ''}${kpis.roi.toFixed(1)}%`;
+            profitChangeElement.className = kpis.roi >= 0 ? 'font-medium mr-2 text-green-500' : 'font-medium mr-2 text-red-500';
+            
+            // ROI
+            document.getElementById('roi-kpi').textContent = `${kpis.roi.toFixed(1)}%`;
+            const roiProgressBar = document.getElementById('roi-progress-bar');
+            roiProgressBar.style.width = `${Math.min(Math.abs(kpis.roi), 100)}%`;
+            roiProgressBar.className = kpis.roi >= 0 ? 
+                'investment-progress-bar bg-green-500' : 'investment-progress-bar bg-red-500';
             
             // Wallet balance
-            document.getElementById('wallet-balance').textContent = `$${kpis.balance.toFixed(2)}`;
-            document.getElementById('mobile-wallet-balance').textContent = `$${kpis.balance.toFixed(2)}`;
+            const balance = currentUser?.balance || 0;
+            document.getElementById('wallet-balance').textContent = `$${balance.toFixed(2)}`;
+            document.getElementById('mobile-wallet-balance').textContent = `$${balance.toFixed(2)}`;
+            
+            // Set username with role badge if admin
+            if (currentUser) {
+                document.getElementById('username-display').innerHTML = currentUser.username + 
+                    (currentUser.role === 'admin' ? ' <span class="text-xs bg-purple-600 text-white px-2 py-1 rounded-full">ADMIN</span>' : '');
+                document.getElementById('mobile-username-display').innerHTML = currentUser.username + 
+                    (currentUser.role === 'admin' ? ' <span class="text-xs bg-purple-600 text-white px-2 py-1 rounded-full">ADMIN</span>' : '');
+            }
         }
 
-        // Render charts
-        function renderCharts(kpis, trades) {
-            // Profit Trend Chart (Area)
-            const profitTrendChart = new ApexCharts(document.getElementById('profit-trend-chart'), {
-                series: [{
-                    name: 'Daily Profit',
-                    data: Object.entries(kpis.dailyReturns).map(([date, data]) => ({
-                        x: date,
-                        y: data.profit
-                    }))
-                }],
+        // Render investment charts
+        function renderCharts(kpis, investmentData) {
+            // Destroy existing charts if they exist
+            if (window.investmentGrowthChart) window.investmentGrowthChart.destroy();
+            if (window.assetAllocationChart) window.assetAllocationChart.destroy();
+            if (window.monthlyPerformanceChart) window.monthlyPerformanceChart.destroy();
+            if (window.profitSourcesChart) window.profitSourcesChart.destroy();
+            if (window.investmentTimelineChart) window.investmentTimelineChart.destroy();
+
+            // Investment Growth Chart (Line)
+            const monthlyData = Object.entries(kpis.monthlyPerformance).sort((a, b) => a[0].localeCompare(b[0]));
+            
+            window.investmentGrowthChart = new ApexCharts(document.getElementById('investment-growth-chart'), {
+                series: [
+                    {
+                        name: 'Total Invested',
+                        data: monthlyData.map(([month, data]) => ({
+                            x: month,
+                            y: data.invested
+                        }))
+                    },
+                    {
+                        name: 'Net Worth',
+                        data: monthlyData.map(([month, data]) => ({
+                            x: month,
+                            y: data.netWorth
+                        }))
+                    }
+                ],
                 chart: {
-                    type: 'area',
+                    type: 'line',
                     height: '100%',
                     toolbar: {
                         show: true,
@@ -496,52 +623,45 @@
                         enabled: true
                     }
                 },
-                dataLabels: {
-                    enabled: false
-                },
                 stroke: {
                     curve: 'smooth',
-                    width: 2
+                    width: 3
                 },
-                fill: {
-                    type: 'gradient',
-                    gradient: {
-                        shadeIntensity: 1,
-                        opacityFrom: 0.7,
-                        opacityTo: 0.3,
-                        stops: [0, 100]
-                    }
-                },
-                colors: ['#6E44FF'],
+                colors: ['#6E44FF', '#10B981'],
                 xaxis: {
-                    type: 'datetime'
+                    type: 'category'
                 },
                 yaxis: {
                     labels: {
                         formatter: function(value) {
-                            return '$' + value.toFixed(2);
+                            return '$' + value.toLocaleString('en-US');
                         }
                     }
                 },
                 tooltip: {
                     y: {
                         formatter: function(value) {
-                            return '$' + value.toFixed(2);
+                            return '$' + value.toLocaleString('en-US');
                         }
                     }
+                },
+                legend: {
+                    position: 'top'
                 }
             });
-            profitTrendChart.render();
+            window.investmentGrowthChart.render();
 
-            // Outcome Distribution Chart (Donut)
-            const outcomeChart = new ApexCharts(document.getElementById('outcome-distribution-chart'), {
-                series: [kpis.winCount, kpis.lossCount],
+            // Asset Allocation Chart (Donut)
+            // For simplicity, we'll assume 100% is in trading for this demo
+            // In a real app, you'd get this data from your backend
+            window.assetAllocationChart = new ApexCharts(document.getElementById('asset-allocation-chart'), {
+                series: [100], // All allocated to trading
                 chart: {
                     type: 'donut',
                     height: '100%'
                 },
-                labels: ['Winning Trades', 'Losing Trades'],
-                colors: ['#10B981', '#EF4444'],
+                labels: ['Trading'],
+                colors: ['#6E44FF'],
                 plotOptions: {
                     pie: {
                         donut: {
@@ -549,9 +669,9 @@
                                 show: true,
                                 total: {
                                     show: true,
-                                    label: 'Total Trades',
-                                    formatter: function(w) {
-                                        return w.globals.seriesTotals.reduce((a, b) => a + b, 0);
+                                    label: 'Total Allocation',
+                                    formatter: function() {
+                                        return '100%';
                                     }
                                 }
                             }
@@ -570,14 +690,14 @@
                     }
                 }]
             });
-            outcomeChart.render();
+            window.assetAllocationChart.render();
 
-            // Daily Returns Chart (Bar)
-            const dailyReturnsChart = new ApexCharts(document.getElementById('daily-returns-chart'), {
+            // Monthly Performance Chart (Bar)
+            window.monthlyPerformanceChart = new ApexCharts(document.getElementById('monthly-performance-chart'), {
                 series: [{
-                    name: 'Profit',
-                    data: Object.entries(kpis.dailyReturns).map(([date, data]) => ({
-                        x: date,
+                    name: 'Monthly Profit',
+                    data: monthlyData.map(([month, data]) => ({
+                        x: month,
                         y: data.profit
                     }))
                 }],
@@ -592,79 +712,7 @@
                     bar: {
                         borderRadius: 4,
                         horizontal: false,
-                        columnWidth: '55%',
-                    }
-                },
-                dataLabels: {
-                    enabled: false
-                },
-                colors: ['#6E44FF'],
-                xaxis: {
-                    type: 'datetime'
-                },
-                yaxis: {
-                    labels: {
-                        formatter: function(value) {
-                            return '$' + value.toFixed(2);
-                        }
-                    }
-                },
-                tooltip: {
-                    y: {
-                        formatter: function(value) {
-                            return '$' + value.toFixed(2);
-                        }
-                    }
-                }
-            });
-            dailyReturnsChart.render();
-
-            // Trade Size Chart (Boxplot)
-            const tradeSizeChart = new ApexCharts(document.getElementById('trade-size-chart'), {
-                series: [{
-                    name: 'Trade Size',
-                    data: [{
-                        x: 'Trade Amounts',
-                        y: kpis.tradeSizes
-                    }]
-                }],
-                chart: {
-                    type: 'boxPlot',
-                    height: '100%',
-                    toolbar: {
-                        show: false
-                    }
-                },
-                colors: ['#6E44FF'],
-                plotOptions: {
-                    boxPlot: {
-                        colors: {
-                            upper: '#6E44FF',
-                            lower: '#FF44B4'
-                        }
-                    }
-                },
-                tooltip: {
-                    shared: false,
-                    intersect: true
-                }
-            });
-            tradeSizeChart.render();
-
-            // Heatmap Chart
-            const heatmapChart = new ApexCharts(document.getElementById('heatmap-chart'), {
-                series: [{
-                    name: 'Trades',
-                    data: kpis.hourlyActivity.map((count, hour) => ({
-                        x: `${hour}:00`,
-                        y: count
-                    }))
-                }],
-                chart: {
-                    type: 'heatmap',
-                    height: '100%',
-                    toolbar: {
-                        show: false
+                        columnWidth: '70%',
                     }
                 },
                 dataLabels: {
@@ -674,86 +722,210 @@
                 xaxis: {
                     type: 'category'
                 },
-                plotOptions: {
-                    heatmap: {
-                        radius: 4,
-                        enableShades: true,
-                        shadeIntensity: 0.5,
-                        reverseNegativeShade: true,
-                        distributed: false,
-                        useFillColorAsStroke: false,
-                        colorScale: {
-                            ranges: [{
-                                from: 0,
-                                to: 0,
-                                color: '#1F2937',
-                                name: 'low'
-                            }, {
-                                from: 1,
-                                to: 5,
-                                color: '#6E44FF',
-                                name: 'medium'
-                            }, {
-                                from: 6,
-                                to: 100,
-                                color: '#FF44B4',
-                                name: 'high'
-                            }]
+                yaxis: {
+                    labels: {
+                        formatter: function(value) {
+                            return '$' + value.toLocaleString('en-US');
+                        }
+                    }
+                },
+                tooltip: {
+                    y: {
+                        formatter: function(value) {
+                            return '$' + value.toLocaleString('en-US');
                         }
                     }
                 }
             });
-            heatmapChart.render();
+            window.monthlyPerformanceChart.render();
+
+            // Profit Sources Chart (Radial)
+            // For simplicity, we'll assume all profit is from trading
+            // In a real app, you'd get this data from your backend
+            window.profitSourcesChart = new ApexCharts(document.getElementById('profit-sources-chart'), {
+                series: [100], // All profit from trading
+                chart: {
+                    type: 'radialBar',
+                    height: '100%'
+                },
+                plotOptions: {
+                    radialBar: {
+                        offsetY: 0,
+                        startAngle: 0,
+                        endAngle: 270,
+                        hollow: {
+                            margin: 5,
+                            size: '30%',
+                            background: 'transparent',
+                            image: undefined,
+                        },
+                        dataLabels: {
+                            name: {
+                                show: false,
+                            },
+                            value: {
+                                show: false,
+                            }
+                        },
+                        track: {
+                            show: true,
+                            startAngle: undefined,
+                            endAngle: undefined,
+                            background: '#2D3748',
+                            strokeWidth: '97%',
+                            opacity: 1,
+                            margin: 5,
+                        }
+                    }
+                },
+                colors: ['#6E44FF'],
+                labels: ['Trading'],
+                legend: {
+                    show: true,
+                    floating: true,
+                    fontSize: '14px',
+                    position: 'left',
+                    offsetX: 0,
+                    offsetY: 0,
+                    labels: {
+                        useSeriesColors: true,
+                    },
+                    markers: {
+                        size: 0
+                    },
+                    formatter: function(seriesName, opts) {
+                        return seriesName + ":  " + opts.w.globals.series[opts.seriesIndex] + '%';
+                    },
+                    itemMargin: {
+                        vertical: 3
+                    }
+                },
+                responsive: [{
+                    breakpoint: 480,
+                    options: {
+                        legend: {
+                            show: false
+                        }
+                    }
+                }]
+            });
+            window.profitSourcesChart.render();
+
+            // Investment Timeline Chart (Line)
+            window.investmentTimelineChart = new ApexCharts(document.getElementById('investment-timeline-chart'), {
+                series: [{
+                    name: 'Portfolio Value',
+                    data: kpis.timelineData
+                }],
+                chart: {
+                    type: 'line',
+                    height: '100%',
+                    toolbar: {
+                        show: false
+                    }
+                },
+                stroke: {
+                    curve: 'stepline',
+                    width: 2
+                },
+                colors: ['#6E44FF'],
+                markers: {
+                    size: 5,
+                    colors: kpis.timelineData.map(point => 
+                        point.type === 'deposit' ? '#10B981' : '#3B82F6'),
+                    strokeColors: '#1F2937',
+                    strokeWidth: 2
+                },
+                xaxis: {
+                    type: 'datetime'
+                },
+                yaxis: {
+                    labels: {
+                        formatter: function(value) {
+                            return '$' + value.toLocaleString('en-US');
+                        }
+                    }
+                },
+                tooltip: {
+                    custom: function({ series, seriesIndex, dataPointIndex, w }) {
+                        const point = kpis.timelineData[dataPointIndex];
+                        return `
+                            <div class="bg-gray-800 p-3 rounded-lg shadow-lg border border-gray-700">
+                                <div class="text-sm font-bold mb-1">
+                                    ${point.type === 'deposit' ? 'Deposit' : 'Profit'} on ${new Date(point.x).toLocaleDateString()}
+                                </div>
+                                <div class="text-sm">
+                                    Amount: $${point.amount.toFixed(2)}
+                                </div>
+                                <div class="text-sm">
+                                    New Balance: $${point.y.toFixed(2)}
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+            });
+            window.investmentTimelineChart.render();
         }
 
-        // Load recent trades table
-        function loadRecentTrades(trades) {
-            const table = document.getElementById('recent-trades');
+        // Load recent investments table
+        function loadRecentInvestments(investments) {
+            const table = document.getElementById('recent-investments');
             table.innerHTML = '';
 
-            if (trades.length === 0) {
+            if (!investments || investments.length === 0) {
                 table.innerHTML = `
                     <tr>
-                        <td colspan="5" class="px-6 py-4 text-center text-gray-400">No trading activity found</td>
+                        <td colspan="5" class="px-6 py-4 text-center text-gray-400">No investment activity found</td>
                     </tr>
                 `;
                 return;
             }
 
-            // Show only last 10 trades
-            const recent = trades.slice(0, 10);
+            // Show only last 10 investments, sorted by date (newest first)
+            const recent = investments
+                .sort((a, b) => new Date(b.date) - new Date(a.date))
+                .slice(0, 10);
             
-            recent.forEach(trade => {
+            recent.forEach(investment => {
                 const row = document.createElement('tr');
                 row.className = 'hover:bg-gray-800';
                 row.innerHTML = `
                     <td class="px-6 py-4 whitespace-nowrap">
-                        ${new Date(trade.date).toLocaleString()}
+                        ${new Date(investment.date).toLocaleString()}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <span class="px-2 py-1 rounded-full text-xs font-medium ${
-                            trade.type === 'buy' 
-                                ? 'bg-green-900 text-green-300' 
-                                : 'bg-red-900 text-red-300'
+                            investment.type === 'deposit' 
+                                ? 'bg-blue-900 text-blue-300' 
+                                : investment.profit !== undefined 
+                                    ? (investment.profit >= 0 ? 'bg-green-900 text-green-300' : 'bg-red-900 text-red-300')
+                                    : 'bg-gray-700 text-gray-300'
                         }">
-                            ${trade.type.toUpperCase()}
+                            ${investment.type.toUpperCase()}
                         </span>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        $${trade.amount.toFixed(2)}
-                    </td>
                     <td class="px-6 py-4 whitespace-nowrap ${
-                        trade.profit > 0 ? 'text-green-400' : 'text-red-400'
+                        investment.type === 'deposit' 
+                            ? 'text-blue-400' 
+                            : investment.profit !== undefined 
+                                ? (investment.profit >= 0 ? 'text-green-400' : 'text-red-400')
+                                : 'text-gray-400'
                     }">
-                        ${trade.profit > 0 ? '+' : ''}$${trade.profit.toFixed(2)}
+                        ${investment.type === 'deposit' ? '+' : ''}$${
+                            (investment.amount || investment.profit || 0).toFixed(2)
+                        }
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        $${(investment.balance || 0).toFixed(2)}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <span class="px-2 py-1 rounded-full text-xs font-medium ${
-                            trade.isWin 
+                            investment.status === 'completed' 
                                 ? 'bg-green-900 text-green-300' 
-                                : 'bg-red-900 text-red-300'
+                                : 'bg-yellow-900 text-yellow-300'
                         }">
-                            ${trade.isWin ? 'WIN' : 'LOSS'}
+                            ${(investment.status || 'completed').toUpperCase()}
                         </span>
                     </td>
                 `;
@@ -763,19 +935,19 @@
 
         // Refresh dashboard
         function refreshDashboard(days = 30) {
-            const { recentTrades, previousPeriodTrades, balance } = loadTradingData(days);
-            const kpis = calculateKPIs(recentTrades, previousPeriodTrades);
-            kpis.balance = balance;
+            const currentUser = loadUserData();
+            if (!currentUser) return;
             
-            updateKPIs(kpis);
-            renderCharts(kpis, recentTrades);
-            loadRecentTrades(recentTrades);
+            const { recentInvestments, previousPeriodInvestments, ...investmentData } = loadInvestmentData(days);
+            const kpis = calculateKPIs(recentInvestments, previousPeriodInvestments, investmentData);
+            
+            updateKPIs(kpis, currentUser);
+            renderCharts(kpis, investmentData);
+            loadRecentInvestments(recentInvestments);
         }
 
         // Initialize dashboard
         document.addEventListener('DOMContentLoaded', () => {
-            // Mobile menu toggle is already set up at the top
-            
             // Set initial time filter
             const timeFilter = document.getElementById('time-filter');
             timeFilter.addEventListener('change', (e) => {

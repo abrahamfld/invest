@@ -73,6 +73,9 @@
                     <button id="refresh-btn" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg flex items-center">
                         <i class="fas fa-sync-alt mr-2"></i> Refresh
                     </button>
+                    <button id="deposit-btn" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg flex items-center">
+                        <i class="fas fa-plus-circle mr-2"></i> Deposit
+                    </button>
                 </div>
             </div>
             
@@ -440,40 +443,41 @@
     <script>
         // Load user data from localStorage
         function loadUserData() {
-            const users = JSON.parse(localStorage.getItem('users')) || {};
-            const currentUserId = localStorage.getItem('currentUser');
-            const user = users[currentUserId] || {};
-            const quantumBotWallet = JSON.parse(localStorage.getItem('quantumBotWallet')) || {};
+            const currentUserStr = localStorage.getItem('currentUser');
+            if (!currentUserStr) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            const currentUser = JSON.parse(currentUserStr);
             
             // Update UI with user data
-            document.getElementById('username-display').textContent = user.username || 'Guest';
-            document.getElementById('wallet-balance').textContent = `$${(user.balance || 0).toFixed(2)}`;
-            document.getElementById('total-balance').textContent = `$${(user.balance || 0).toFixed(2)}`;
-            document.getElementById('available-balance').textContent = `$${(user.balance || 0).toFixed(2)}`;
-            document.getElementById('active-trades').textContent = `$${(quantumBotWallet.activeTrades || 0).toFixed(2)}`;
-            document.getElementById('total-profit').textContent = `$${(user.totalProfit || 0).toFixed(2)}`;
-            document.getElementById('win-count').textContent = user.winCount || 0;
-            document.getElementById('total-trades').textContent = user.totalTrades || 0;
-            document.getElementById('win-rate').textContent = user.totalTrades ? `${Math.round((user.winCount / user.totalTrades) * 100)}%` : '0%';
-            document.getElementById('btc-address').textContent = quantumBotWallet.btcAddress ? `${quantumBotWallet.btcAddress.substring(0, 6)}...${quantumBotWallet.btcAddress.substring(quantumBotWallet.btcAddress.length - 4)}` : 'Not available';
+            document.getElementById('username-display').innerHTML = currentUser.username + 
+                (currentUser.role === 'admin' ? ' <span class="text-xs bg-purple-600 text-white px-2 py-1 rounded-full">ADMIN</span>' : '');
+            
+            document.getElementById('wallet-balance').textContent = `$${(currentUser.balance || 0).toFixed(2)}`;
+            document.getElementById('total-balance').textContent = `$${(currentUser.balance || 0).toFixed(2)}`;
+            document.getElementById('available-balance').textContent = `$${(currentUser.balance || 0).toFixed(2)}`;
+            document.getElementById('active-trades').textContent = '$0.00';
+            document.getElementById('total-profit').textContent = `$${(currentUser.totalProfit || 0).toFixed(2)}`;
+            document.getElementById('win-count').textContent = currentUser.winCount || 0;
+            document.getElementById('total-trades').textContent = currentUser.totalTrades || 0;
+            document.getElementById('win-rate').textContent = currentUser.totalTrades ? 
+                `${Math.round((currentUser.winCount / currentUser.totalTrades) * 100)}%` : '0%';
             
             // Set BTC/USD conversion rate (simulated)
             const btcRate = 50000; // $50,000 per BTC
-            const availableBalance = user.balance || 0;
+            const availableBalance = currentUser.balance || 0;
             document.getElementById('btc-available').textContent = (availableBalance / btcRate).toFixed(6);
             document.getElementById('usdt-available').textContent = availableBalance.toFixed(2);
             
             // Load transactions
-            loadTransactions();
+            loadTransactions(currentUser);
         }
         
-        // Load transactions
-        function loadTransactions() {
-            const users = JSON.parse(localStorage.getItem('users')) || {};
-            const currentUserId = localStorage.getItem('currentUser');
-            const user = users[currentUserId] || { transactions: [] };
-            const transactions = user.transactions || [];
-            
+        // Load transactions from currentUser data
+        function loadTransactions(currentUser) {
+            const transactions = currentUser.transactions || [];
             const transactionsList = document.getElementById('transactions-list');
             transactionsList.innerHTML = '';
             
@@ -516,7 +520,128 @@
             document.getElementById('transaction-count').textContent = 
                 `${transactions.length} transaction${transactions.length !== 1 ? 's' : ''}`;
         }
-        
+
+        // Add transaction to user data
+        function addTransaction(type, amount) {
+            const currentUserStr = localStorage.getItem('currentUser');
+            if (!currentUserStr) return null;
+            
+            const currentUser = JSON.parse(currentUserStr);
+            const transaction = {
+                id: Date.now(),
+                type,
+                amount,
+                date: new Date().toISOString()
+            };
+            
+            if (!currentUser.transactions) {
+                currentUser.transactions = [];
+            }
+            
+            currentUser.transactions.unshift(transaction);
+            
+            // Update balance if deposit
+            if (type === 'deposit') {
+                currentUser.balance = (currentUser.balance || 0) + amount;
+            } else if (type === 'withdrawal') {
+                currentUser.balance = (currentUser.balance || 0) - amount;
+            }
+            
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            
+            // Save to server
+            saveUserDataToServer(currentUser);
+            
+            return transaction;
+        }
+
+        // Save user data to server
+        async function saveUserDataToServer(userData) {
+            const userId = localStorage.getItem('userId');
+            if (!userId || !userData) {
+                console.error('User ID or user data missing');
+                return false;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/save-data`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        userId,
+                        userData
+                    }),
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Server returned ${response.status}`);
+                }
+
+                const result = await response.json();
+                if (!result.success) {
+                    console.error('Server reported failure:', result.message);
+                    return false;
+                }
+                
+                console.log('User data saved successfully');
+                return true;
+            } catch (error) {
+                console.error('Failed to save user data:', error);
+                return false;
+            }
+        }
+
+        // Process withdrawal
+        function processWithdrawal(currency, address, amount) {
+            const modal = document.getElementById('processing-modal');
+            const title = document.getElementById('processing-title');
+            const message = document.getElementById('processing-message');
+            const amountDisplay = document.getElementById('processing-amount');
+            const addressDisplay = document.getElementById('processing-address');
+            
+            title.textContent = `Processing ${currency} Withdrawal`;
+            message.textContent = `Please wait while we process your ${currency} transaction...`;
+            amountDisplay.textContent = `${amount} ${currency}`;
+            addressDisplay.textContent = address;
+            
+            // Generate random TXID
+            const txid = `txid_${Math.random().toString(36).substring(2, 15)}${Math.random().toString(36).substring(2, 15)}`;
+            document.getElementById('processing-txid').textContent = `${txid.substring(0, 8)}...${txid.substring(txid.length - 4)}`;
+            
+            // Reset progress bar
+            document.querySelector('.progress-bar').style.width = '0%';
+            modal.classList.remove('hidden');
+            modal.classList.add('processing');
+            
+            // Simulate processing for 7 seconds
+            setTimeout(() => {
+                modal.classList.remove('processing');
+                modal.classList.add('hidden');
+                
+                // Show success modal
+                const successModal = document.getElementById('success-modal');
+                document.getElementById('success-amount').textContent = `${amount} ${currency}`;
+                document.getElementById('success-address').textContent = address;
+                document.getElementById('success-txid').textContent = `${txid.substring(0, 8)}...${txid.substring(txid.length - 4)}`;
+                document.getElementById('success-message').textContent = `Your ${currency} withdrawal has been processed successfully.`;
+                successModal.classList.remove('hidden');
+                
+                // Update balance in localStorage
+                const amountValue = parseFloat(amount);
+                if (currency === 'BTC') {
+                    const btcRate = 50000; // $50,000 per BTC
+                    addTransaction('withdrawal', amountValue * btcRate);
+                } else {
+                    addTransaction('withdrawal', amountValue);
+                }
+                
+                // Refresh UI
+                loadUserData();
+            }, 7000);
+        }
+
         // Tab switching
         function switchTab(tabName) {
             document.getElementById('deposit-tab').classList.remove('border-purple-500', 'text-purple-400');
@@ -557,71 +682,7 @@
                 element.value = originalText;
             }, 2000);
         }
-        
-        // Process withdrawal
-        function processWithdrawal(currency, address, amount) {
-            const modal = document.getElementById('processing-modal');
-            const title = document.getElementById('processing-title');
-            const message = document.getElementById('processing-message');
-            const amountDisplay = document.getElementById('processing-amount');
-            const addressDisplay = document.getElementById('processing-address');
-            
-            title.textContent = `Processing ${currency} Withdrawal`;
-            message.textContent = `Please wait while we process your ${currency} transaction...`;
-            amountDisplay.textContent = `${amount} ${currency}`;
-            addressDisplay.textContent = address;
-            
-            // Generate random TXID
-            const txid = `txid_${Math.random().toString(36).substring(2, 15)}${Math.random().toString(36).substring(2, 15)}`;
-            document.getElementById('processing-txid').textContent = `${txid.substring(0, 8)}...${txid.substring(txid.length - 4)}`;
-            
-            // Reset progress bar
-            document.querySelector('.progress-bar').style.width = '0%';
-            modal.classList.remove('hidden');
-            modal.classList.add('processing');
-            
-            // Simulate processing for 7 seconds
-            setTimeout(() => {
-                modal.classList.remove('processing');
-                modal.classList.add('hidden');
-                
-                // Show success modal
-                const successModal = document.getElementById('success-modal');
-                document.getElementById('success-amount').textContent = `${amount} ${currency}`;
-                document.getElementById('success-address').textContent = address;
-                document.getElementById('success-txid').textContent = `${txid.substring(0, 8)}...${txid.substring(txid.length - 4)}`;
-                document.getElementById('success-message').textContent = `Your ${currency} withdrawal has been processed successfully.`;
-                successModal.classList.remove('hidden');
-                
-                // Update balance in localStorage
-                const users = JSON.parse(localStorage.getItem('users')) || {};
-                const currentUserId = localStorage.getItem('currentUser');
-                const user = users[currentUserId] || {};
-                
-                if (user.balance) {
-                    const amountValue = parseFloat(amount);
-                    if (currency === 'BTC') {
-                        const btcRate = 50000; // $50,000 per BTC
-                        user.balance -= amountValue * btcRate;
-                    } else {
-                        user.balance -= amountValue;
-                    }
-                    
-                    // Add to transactions
-                    user.transactions = user.transactions || [];
-                    user.transactions.unshift({
-                        id: Date.now(),
-                        type: 'withdrawal',
-                        amount: currency === 'BTC' ? amountValue * 50000 : amountValue,
-                        date: new Date().toISOString()
-                    });
-                    
-                    localStorage.setItem('users', JSON.stringify(users));
-                    loadUserData();
-                }
-            }, 7000);
-        }
-        
+
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             loadUserData();
@@ -735,6 +796,16 @@
             
             // Refresh button
             document.getElementById('refresh-btn').addEventListener('click', loadUserData);
+            
+            // Deposit button (simulated)
+            document.getElementById('deposit-btn').addEventListener('click', () => {
+                const depositAmount = Math.floor(100 + Math.random() * 400);
+                addTransaction('deposit', depositAmount);
+                loadUserData();
+                
+                // Show success message
+                alert(`Successfully deposited $${depositAmount.toFixed(2)}`);
+            });
         });
     </script>
 </body>
