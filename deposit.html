@@ -28,6 +28,14 @@
         .usdt-bg {
             background-color: #26a17b;
         }
+        #mobile-menu {
+            transition: all 0.3s ease;
+            max-height: 0;
+            overflow: hidden;
+        }
+        #mobile-menu:not(.hidden) {
+            max-height: 500px;
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-gray-100 font-sans antialiased">
@@ -43,8 +51,14 @@
         </div>
         
         <div class="hidden md:flex items-center space-x-6">
+            <a href="dashboard.html" class="px-3 py-2 text-gray-300 hover:text-purple-400 flex items-center">
+                <i class="fas fa-tachometer-alt mr-2"></i> Dashboard
+            </a>
             <a href="index.html" class="px-3 py-2 text-gray-300 hover:text-purple-400 flex items-center">
                 <i class="fas fa-chart-line mr-2"></i> Trading
+            </a>
+            <a href="deposit.html" class="px-3 py-2 text-gray-300 hover:text-purple-400 flex items-center">
+                <i class="fas fa-money-bill-wave mr-2"></i> Deposit
             </a>
             <div class="flex items-center space-x-2 bg-gray-700 px-4 py-2 rounded-lg">
                 <i class="fas fa-wallet text-purple-400"></i>
@@ -54,15 +68,45 @@
                 <i class="fas fa-user-circle text-xl text-purple-400"></i>
                 <span id="username-display">Guest</span>
             </div>
+            <a href="logout.html" class="px-3 py-2 text-gray-300 hover:text-red-400 flex items-center">
+                <i class="fas fa-sign-out-alt mr-2"></i> Logout
+            </a>
         </div>
         
-        <button class="md:hidden text-2xl focus:outline-none">
+        <button id="mobile-menu-button" class="md:hidden text-2xl focus:outline-none">
             <i class="fas fa-bars"></i>
         </button>
     </nav>
 
+    <!-- Mobile Menu -->
+    <div id="mobile-menu" class="md:hidden hidden bg-gray-800 border-b border-gray-700 px-6 py-3">
+        <div class="flex flex-col space-y-4">
+            <a href="dashboard.html" class="px-3 py-2 text-gray-300 hover:text-purple-400 flex items-center">
+                <i class="fas fa-tachometer-alt mr-2"></i> Dashboard
+            </a>
+            <a href="index.html" class="px-3 py-2 text-gray-300 hover:text-purple-400 flex items-center">
+                <i class="fas fa-chart-line mr-2"></i> Trading
+            </a>
+            <a href="deposit.html" class="px-3 py-2 text-gray-300 hover:text-purple-400 flex items-center">
+                <i class="fas fa-money-bill-wave mr-2"></i> Deposit
+            </a>
+            <div class="flex items-center space-x-2 bg-gray-700 px-4 py-2 rounded-lg">
+                <i class="fas fa-wallet text-purple-400"></i>
+                <span id="mobile-wallet-balance">$0.00</span>
+            </div>
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-user-circle text-xl text-purple-400"></i>
+                <span id="mobile-username-display">Guest</span>
+            </div>
+            <a href="logout.html" class="px-3 py-2 text-gray-300 hover:text-red-400 flex items-center">
+                <i class="fas fa-sign-out-alt mr-2"></i> Logout
+            </a>
+        </div>
+    </div>
+
     <!-- Main Content -->
     <div class="container mx-auto px-4 py-8">
+        <!-- Rest of your wallet page content remains exactly the same -->
         <div class="max-w-4xl mx-auto">
             <div class="flex justify-between items-center mb-8">
                 <h1 class="text-2xl md:text-3xl font-bold">
@@ -441,6 +485,148 @@
     </div>
 
     <script>
+        // Mobile menu toggle functionality
+        document.addEventListener('DOMContentLoaded', () => {
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            
+            mobileMenuButton.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+                
+                const icon = mobileMenuButton.querySelector('i');
+                if (mobileMenu.classList.contains('hidden')) {
+                    icon.classList.remove('fa-times');
+                    icon.classList.add('fa-bars');
+                } else {
+                    icon.classList.remove('fa-bars');
+                    icon.classList.add('fa-times');
+                }
+            });
+            
+            // Load user data
+            loadUserData();
+            
+            // Tab events
+            document.getElementById('deposit-tab').addEventListener('click', () => switchTab('deposit'));
+            document.getElementById('withdraw-tab').addEventListener('click', () => switchTab('withdraw'));
+            document.getElementById('history-tab').addEventListener('click', () => switchTab('history'));
+            
+            // Deposit method selection
+            document.querySelectorAll('.deposit-method-btn').forEach(btn => {
+                btn.addEventListener('click', () => selectDepositMethod(btn.dataset.currency));
+            });
+            
+            // Withdraw method selection
+            document.querySelectorAll('.withdraw-method-btn').forEach(btn => {
+                btn.addEventListener('click', () => selectWithdrawMethod(btn.dataset.currency));
+            });
+            
+            // Copy address buttons
+            document.getElementById('copy-btc-address').addEventListener('click', () => copyToClipboard('btc-deposit-address', 'BTC address copied!'));
+            document.getElementById('copy-usdt-address').addEventListener('click', () => copyToClipboard('usdt-deposit-address', 'USDT address copied!'));
+            
+            // Withdraw form calculations
+            document.getElementById('btc-withdraw-amount').addEventListener('input', (e) => {
+                const amount = parseFloat(e.target.value) || 0;
+                const fee = 0.0001;
+                document.getElementById('btc-receive-amount').textContent = (amount - fee).toFixed(6);
+            });
+            
+            document.getElementById('usdt-withdraw-amount').addEventListener('input', (e) => {
+                const amount = parseFloat(e.target.value) || 0;
+                const fee = 1;
+                document.getElementById('usdt-receive-amount').textContent = (amount - fee).toFixed(2);
+            });
+            
+            // Max buttons
+            document.getElementById('btc-max-btn').addEventListener('click', () => {
+                const available = parseFloat(document.getElementById('btc-available').textContent);
+                document.getElementById('btc-withdraw-amount').value = available.toFixed(6);
+                document.getElementById('btc-receive-amount').textContent = (available - 0.0001).toFixed(6);
+            });
+            
+            document.getElementById('usdt-max-btn').addEventListener('click', () => {
+                const available = parseFloat(document.getElementById('usdt-available').textContent);
+                document.getElementById('usdt-withdraw-amount').value = available.toFixed(2);
+                document.getElementById('usdt-receive-amount').textContent = (available - 1).toFixed(2);
+            });
+            
+            // Withdraw submit buttons
+            document.getElementById('btc-withdraw-submit').addEventListener('click', () => {
+                const address = document.getElementById('btc-withdraw-address').value.trim();
+                const amount = document.getElementById('btc-withdraw-amount').value;
+                
+                if (!address) {
+                    alert('Please enter a valid BTC address');
+                    return;
+                }
+                
+                if (!amount || parseFloat(amount) <= 0) {
+                    alert('Please enter a valid amount');
+                    return;
+                }
+                
+                const available = parseFloat(document.getElementById('btc-available').textContent);
+                if (parseFloat(amount) > available) {
+                    alert('Insufficient balance');
+                    return;
+                }
+                
+                if (parseFloat(amount) < 0.0005) {
+                    alert('Minimum withdrawal is 0.0005 BTC');
+                    return;
+                }
+                
+                processWithdrawal('BTC', address, amount);
+            });
+            
+            document.getElementById('usdt-withdraw-submit').addEventListener('click', () => {
+                const address = document.getElementById('usdt-withdraw-address').value.trim();
+                const amount = document.getElementById('usdt-withdraw-amount').value;
+                
+                if (!address) {
+                    alert('Please enter a valid USDT address');
+                    return;
+                }
+                
+                if (!amount || parseFloat(amount) <= 0) {
+                    alert('Please enter a valid amount');
+                    return;
+                }
+                
+                const available = parseFloat(document.getElementById('usdt-available').textContent);
+                if (parseFloat(amount) > available) {
+                    alert('Insufficient balance');
+                    return;
+                }
+                
+                if (parseFloat(amount) < 10) {
+                    alert('Minimum withdrawal is 10 USDT');
+                    return;
+                }
+                
+                processWithdrawal('USDT', address, amount);
+            });
+            
+            // Close success modal
+            document.getElementById('success-close').addEventListener('click', () => {
+                document.getElementById('success-modal').classList.add('hidden');
+            });
+            
+            // Refresh button
+            document.getElementById('refresh-btn').addEventListener('click', loadUserData);
+            
+            // Deposit button (simulated)
+            document.getElementById('deposit-btn').addEventListener('click', () => {
+                const depositAmount = Math.floor(100 + Math.random() * 400);
+                addTransaction('deposit', depositAmount);
+                loadUserData();
+                
+                // Show success message
+                alert(`Successfully deposited $${depositAmount.toFixed(2)}`);
+            });
+        });
+
         // Load user data from localStorage
         function loadUserData() {
             const currentUserStr = localStorage.getItem('currentUser');
@@ -455,7 +641,11 @@
             document.getElementById('username-display').innerHTML = currentUser.username + 
                 (currentUser.role === 'admin' ? ' <span class="text-xs bg-purple-600 text-white px-2 py-1 rounded-full">ADMIN</span>' : '');
             
+            document.getElementById('mobile-username-display').innerHTML = currentUser.username + 
+                (currentUser.role === 'admin' ? ' <span class="text-xs bg-purple-600 text-white px-2 py-1 rounded-full">ADMIN</span>' : '');
+            
             document.getElementById('wallet-balance').textContent = `$${(currentUser.balance || 0).toFixed(2)}`;
+            document.getElementById('mobile-wallet-balance').textContent = `$${(currentUser.balance || 0).toFixed(2)}`;
             document.getElementById('total-balance').textContent = `$${(currentUser.balance || 0).toFixed(2)}`;
             document.getElementById('available-balance').textContent = `$${(currentUser.balance || 0).toFixed(2)}`;
             document.getElementById('active-trades').textContent = '$0.00';
@@ -683,130 +873,19 @@
             }, 2000);
         }
 
-        // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
-            loadUserData();
-            
-            // Tab events
-            document.getElementById('deposit-tab').addEventListener('click', () => switchTab('deposit'));
-            document.getElementById('withdraw-tab').addEventListener('click', () => switchTab('withdraw'));
-            document.getElementById('history-tab').addEventListener('click', () => switchTab('history'));
-            
-            // Deposit method selection
-            document.querySelectorAll('.deposit-method-btn').forEach(btn => {
-                btn.addEventListener('click', () => selectDepositMethod(btn.dataset.currency));
+        // Update logout functionality
+            const logoutLinks = document.querySelectorAll('a[href="logout.html"]');
+            logoutLinks.forEach(link => {
+                link.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    await saveUserDataToServer();
+                    localStorage.removeItem('currentUser');
+                    localStorage.removeItem('userId');
+                    localStorage.removeItem('userEmail');
+                    localStorage.clear();
+                    window.location.href = 'landingpage.html';
+                });
             });
-            
-            // Withdraw method selection
-            document.querySelectorAll('.withdraw-method-btn').forEach(btn => {
-                btn.addEventListener('click', () => selectWithdrawMethod(btn.dataset.currency));
-            });
-            
-            // Copy address buttons
-            document.getElementById('copy-btc-address').addEventListener('click', () => copyToClipboard('btc-deposit-address', 'BTC address copied!'));
-            document.getElementById('copy-usdt-address').addEventListener('click', () => copyToClipboard('usdt-deposit-address', 'USDT address copied!'));
-            
-            // Withdraw form calculations
-            document.getElementById('btc-withdraw-amount').addEventListener('input', (e) => {
-                const amount = parseFloat(e.target.value) || 0;
-                const fee = 0.0001;
-                document.getElementById('btc-receive-amount').textContent = (amount - fee).toFixed(6);
-            });
-            
-            document.getElementById('usdt-withdraw-amount').addEventListener('input', (e) => {
-                const amount = parseFloat(e.target.value) || 0;
-                const fee = 1;
-                document.getElementById('usdt-receive-amount').textContent = (amount - fee).toFixed(2);
-            });
-            
-            // Max buttons
-            document.getElementById('btc-max-btn').addEventListener('click', () => {
-                const available = parseFloat(document.getElementById('btc-available').textContent);
-                document.getElementById('btc-withdraw-amount').value = available.toFixed(6);
-                document.getElementById('btc-receive-amount').textContent = (available - 0.0001).toFixed(6);
-            });
-            
-            document.getElementById('usdt-max-btn').addEventListener('click', () => {
-                const available = parseFloat(document.getElementById('usdt-available').textContent);
-                document.getElementById('usdt-withdraw-amount').value = available.toFixed(2);
-                document.getElementById('usdt-receive-amount').textContent = (available - 1).toFixed(2);
-            });
-            
-            // Withdraw submit buttons
-            document.getElementById('btc-withdraw-submit').addEventListener('click', () => {
-                const address = document.getElementById('btc-withdraw-address').value.trim();
-                const amount = document.getElementById('btc-withdraw-amount').value;
-                
-                if (!address) {
-                    alert('Please enter a valid BTC address');
-                    return;
-                }
-                
-                if (!amount || parseFloat(amount) <= 0) {
-                    alert('Please enter a valid amount');
-                    return;
-                }
-                
-                const available = parseFloat(document.getElementById('btc-available').textContent);
-                if (parseFloat(amount) > available) {
-                    alert('Insufficient balance');
-                    return;
-                }
-                
-                if (parseFloat(amount) < 0.0005) {
-                    alert('Minimum withdrawal is 0.0005 BTC');
-                    return;
-                }
-                
-                processWithdrawal('BTC', address, amount);
-            });
-            
-            document.getElementById('usdt-withdraw-submit').addEventListener('click', () => {
-                const address = document.getElementById('usdt-withdraw-address').value.trim();
-                const amount = document.getElementById('usdt-withdraw-amount').value;
-                
-                if (!address) {
-                    alert('Please enter a valid USDT address');
-                    return;
-                }
-                
-                if (!amount || parseFloat(amount) <= 0) {
-                    alert('Please enter a valid amount');
-                    return;
-                }
-                
-                const available = parseFloat(document.getElementById('usdt-available').textContent);
-                if (parseFloat(amount) > available) {
-                    alert('Insufficient balance');
-                    return;
-                }
-                
-                if (parseFloat(amount) < 10) {
-                    alert('Minimum withdrawal is 10 USDT');
-                    return;
-                }
-                
-                processWithdrawal('USDT', address, amount);
-            });
-            
-            // Close success modal
-            document.getElementById('success-close').addEventListener('click', () => {
-                document.getElementById('success-modal').classList.add('hidden');
-            });
-            
-            // Refresh button
-            document.getElementById('refresh-btn').addEventListener('click', loadUserData);
-            
-            // Deposit button (simulated)
-            document.getElementById('deposit-btn').addEventListener('click', () => {
-                const depositAmount = Math.floor(100 + Math.random() * 400);
-                addTransaction('deposit', depositAmount);
-                loadUserData();
-                
-                // Show success message
-                alert(`Successfully deposited $${depositAmount.toFixed(2)}`);
-            });
-        });
     </script>
 </body>
 </html>
