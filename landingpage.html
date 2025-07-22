@@ -1,0 +1,464 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuantumBot | AI-Powered Crypto Trading</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <style>
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+        .gradient-text {
+            background: linear-gradient(90deg, #6E44FF 0%, #FF44B4 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #6E44FF 0%, #FF44B4 100%);
+        }
+        .floating {
+            animation: float 6s ease-in-out infinite;
+        }
+        .pulse {
+            animation: pulse 2s ease-in-out infinite;
+        }
+        #mobile-menu {
+            transition: all 0.3s ease;
+            max-height: 0;
+            overflow: hidden;
+        }
+        #mobile-menu:not(.hidden) {
+            max-height: 500px;
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(110, 68, 255, 0.3);
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 font-sans antialiased">
+    <!-- Navigation Bar -->
+    <nav class="bg-gray-800 border-b border-gray-700 py-3 px-6 flex justify-between items-center sticky top-0 z-50">
+        <div class="flex items-center space-x-2">
+            <a href="index.html" class="flex items-center space-x-2">
+                <div class="w-10 h-10 rounded-lg bg-purple-600 flex items-center justify-center">
+                    <i class="fas fa-robot text-white text-xl"></i>
+                </div>
+                <span class="text-xl font-bold">Quantum<span class="gradient-text">Bot</span></span>
+            </a>
+        </div>
+        
+        <div class="hidden md:flex items-center space-x-6">
+            <a href="#features" class="px-3 py-2 text-gray-300 hover:text-purple-400">Features</a>
+            <a href="#how-it-works" class="px-3 py-2 text-gray-300 hover:text-purple-400">How It Works</a>
+            <a href="#testimonials" class="px-3 py-2 text-gray-300 hover:text-purple-400">Testimonials</a>
+            <a href="trade.html" class="px-3 py-2 text-purple-400 hover:text-purple-300 font-medium">
+                <i class="fas fa-chart-line mr-1"></i> Trade Now
+            </a>
+            <a href="login.html" class="px-3 py-2 text-gray-300 hover:text-purple-400">Login</a>
+            <a href="register.html" class="px-3 py-2 gradient-bg hover:opacity-90 rounded-lg font-medium">Register</a>
+        </div>
+        
+        <button id="mobile-menu-button" class="md:hidden text-2xl focus:outline-none">
+            <i class="fas fa-bars"></i>
+        </button>
+    </nav>
+
+    <!-- Mobile Menu -->
+    <div id="mobile-menu" class="md:hidden hidden bg-gray-800 border-b border-gray-700 px-6 py-3">
+        <div class="flex flex-col space-y-4">
+            <a href="#features" class="px-3 py-2 text-gray-300 hover:text-purple-400">Features</a>
+            <a href="#how-it-works" class="px-3 py-2 text-gray-300 hover:text-purple-400">How It Works</a>
+            <a href="#testimonials" class="px-3 py-2 text-gray-300 hover:text-purple-400">Testimonials</a>
+            <a href="trade.html" class="px-3 py-2 text-purple-400 hover:text-purple-300 font-medium">
+                <i class="fas fa-chart-line mr-1"></i> Trade Now
+            </a>
+            <a href="login.html" class="px-3 py-2 text-gray-300 hover:text-purple-400">Login</a>
+            <a href="register.html" class="px-3 py-2 gradient-bg hover:opacity-90 rounded-lg font-medium text-center">Register</a>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="relative overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-b from-purple-900/20 to-gray-900 z-10"></div>
+        <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1639762681057-408e52192e55?q=80&w=2232&auto=format&fit=crop')] bg-cover bg-center opacity-30"></div>
+        <div class="container mx-auto px-4 py-32 relative z-20">
+            <div class="max-w-3xl mx-auto text-center" data-aos="fade-up">
+                <h1 class="text-4xl md:text-6xl font-bold mb-6">
+                    AI-Powered Crypto Trading <span class="gradient-text">Without The Stress</span>
+                </h1>
+                <p class="text-xl md:text-2xl text-gray-300 mb-10">
+                    Our AI trading bot makes profitable decisions for you with a 90% success rate. 
+                    Start risk-free today - no trading knowledge required!
+                </p>
+                <div class="flex flex-col sm:flex-row justify-center gap-4">
+                    <a href="trade.html" class="px-8 py-4 gradient-bg hover:opacity-90 rounded-lg font-bold text-lg flex items-center justify-center">
+                        <i class="fas fa-chart-line mr-3"></i> Start Trading Now
+                    </a>
+                    <a href="register.html" class="px-8 py-4 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-lg font-bold text-lg flex items-center justify-center">
+                        <i class="fas fa-user-plus mr-3"></i> Register Free
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="bg-gray-800 py-16">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+                <div class="p-6" data-aos="fade-up" data-aos-delay="100">
+                    <div class="text-4xl font-bold gradient-text mb-2">90%</div>
+                    <div class="text-gray-400">Success Rate</div>
+                </div>
+                <div class="p-6" data-aos="fade-up" data-aos-delay="200">
+                    <div class="text-4xl font-bold gradient-text mb-2">24/7</div>
+                    <div class="text-gray-400">Market Monitoring</div>
+                </div>
+                <div class="p-6" data-aos="fade-up" data-aos-delay="300">
+                    <div class="text-4xl font-bold gradient-text mb-2">0$</div>
+                    <div class="text-gray-400">First Trade Risk-Free</div>
+                </div>
+                <div class="p-6" data-aos="fade-up" data-aos-delay="400">
+                    <div class="text-4xl font-bold gradient-text mb-2">1-Click</div>
+                    <div class="text-gray-400">Withdraw Anytime</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-20 bg-gray-900">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-16" data-aos="fade-up">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">Why Choose <span class="gradient-text">QuantumBot</span></h2>
+                <p class="text-xl text-gray-400 max-w-2xl mx-auto">
+                    The most advanced AI trading technology designed for everyone
+                </p>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="bg-gray-800 rounded-xl p-8 card-hover" data-aos="fade-up" data-aos-delay="100">
+                    <div class="w-16 h-16 gradient-bg rounded-lg flex items-center justify-center mb-6">
+                        <i class="fas fa-brain text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">AI-Powered Strategy</h3>
+                    <p class="text-gray-400">
+                        Our bot analyzes thousands of data points per second to execute the most profitable trades automatically.
+                    </p>
+                    <a href="trade.html" class="mt-4 inline-block text-purple-400 hover:text-purple-300 font-medium">
+                        Try it now <i class="fas fa-arrow-right ml-1"></i>
+                    </a>
+                </div>
+                
+                <div class="bg-gray-800 rounded-xl p-8 card-hover" data-aos="fade-up" data-aos-delay="200">
+                    <div class="w-16 h-16 gradient-bg rounded-lg flex items-center justify-center mb-6">
+                        <i class="fas fa-shield-alt text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Risk-Free Start</h3>
+                    <p class="text-gray-400">
+                        Your first trade is completely protected - we cover any losses so you can try with zero risk.
+                    </p>
+                    <a href="register.html" class="mt-4 inline-block text-purple-400 hover:text-purple-300 font-medium">
+                        Claim your free trade <i class="fas fa-arrow-right ml-1"></i>
+                    </a>
+                </div>
+                
+                <div class="bg-gray-800 rounded-xl p-8 card-hover" data-aos="fade-up" data-aos-delay="300">
+                    <div class="w-16 h-16 gradient-bg rounded-lg flex items-center justify-center mb-6">
+                        <i class="fas fa-chart-line text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">90% Success Rate</h3>
+                    <p class="text-gray-400">
+                        With our proven algorithm, 9 out of 10 trades are profitable. How can you lose?
+                    </p>
+                    <a href="trade.html" class="mt-4 inline-block text-purple-400 hover:text-purple-300 font-medium">
+                        See live trades <i class="fas fa-arrow-right ml-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section id="how-it-works" class="py-20 bg-gray-800">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-16" data-aos="fade-up">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">How <span class="gradient-text">QuantumBot</span> Works</h2>
+                <p class="text-xl text-gray-400 max-w-2xl mx-auto">
+                    Start earning in just 3 simple steps - no experience needed
+                </p>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-8 mb-16">
+                <div class="text-center" data-aos="fade-up" data-aos-delay="100">
+                    <div class="w-24 h-24 gradient-bg rounded-full flex items-center justify-center mx-auto mb-6 text-3xl font-bold">1</div>
+                    <h3 class="text-xl font-bold mb-3">Register & Deposit</h3>
+                    <p class="text-gray-400">
+                        Create your free account and deposit any amount you want to trade with.
+                    </p>
+                    <a href="register.html" class="mt-4 inline-block text-purple-400 hover:text-purple-300 font-medium">
+                        Get started <i class="fas fa-arrow-right ml-1"></i>
+                    </a>
+                </div>
+                
+                <div class="text-center" data-aos="fade-up" data-aos-delay="200">
+                    <div class="w-24 h-24 gradient-bg rounded-full flex items-center justify-center mx-auto mb-6 text-3xl font-bold">2</div>
+                    <h3 class="text-xl font-bold mb-3">Configure Your Bot</h3>
+                    <p class="text-gray-400">
+                        Set your investment amount and target profit - or use our recommended settings.
+                    </p>
+                    <a href="trade.html" class="mt-4 inline-block text-purple-400 hover:text-purple-300 font-medium">
+                        Configure now <i class="fas fa-arrow-right ml-1"></i>
+                    </a>
+                </div>
+                
+                <div class="text-center" data-aos="fade-up" data-aos-delay="300">
+                    <div class="w-24 h-24 gradient-bg rounded-full flex items-center justify-center mx-auto mb-6 text-3xl font-bold">3</div>
+                    <h3 class="text-xl font-bold mb-3">Start Earning</h3>
+                    <p class="text-gray-400">
+                        Activate your bot and watch it trade for you 24/7. Withdraw profits anytime!
+                    </p>
+                    <a href="trade.html" class="mt-4 inline-block text-purple-400 hover:text-purple-300 font-medium">
+                        Start trading <i class="fas fa-arrow-right ml-1"></i>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="bg-gray-900 rounded-2xl overflow-hidden" data-aos="zoom-in">
+                <div class="grid md:grid-cols-2">
+                    <div class="p-10 flex flex-col justify-center">
+                        <h3 class="text-2xl font-bold mb-4">Ready to Start Trading?</h3>
+                        <p class="text-gray-400 mb-6">
+                            Our AI analyzes market trends, executes trades, and maximizes your profits while you sleep. 
+                            The dashboard gives you complete control and real-time insights.
+                        </p>
+                        <div class="flex flex-col sm:flex-row gap-4">
+                            <a href="trade.html" class="px-6 py-3 gradient-bg hover:opacity-90 rounded-lg font-bold text-center">
+                                <i class="fas fa-chart-line mr-2"></i> Trade Now
+                            </a>
+                            <a href="register.html" class="px-6 py-3 bg-gray-800 hover:bg-gray-700 rounded-lg font-bold text-center">
+                                <i class="fas fa-user-plus mr-2"></i> Register Free
+                            </a>
+                        </div>
+                    </div>
+                    <div class="relative h-80 md:h-auto">
+                        <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1642784353985-6f1a5b0a0d6d?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center"></div>
+                        <div class="absolute inset-0 bg-purple-600/20"></div>
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <a href="trade.html" class="w-16 h-16 bg-white rounded-full flex items-center justify-center text-purple-600 hover:scale-110 transition-transform">
+                                <i class="fas fa-play text-xl"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section id="testimonials" class="py-20 bg-gray-900">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-16" data-aos="fade-up">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">What Our <span class="gradient-text">Traders Say</span></h2>
+                <p class="text-xl text-gray-400 max-w-2xl mx-auto">
+                    Join thousands of users who multiplied their investments
+                </p>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="bg-gray-800 rounded-xl p-8 card-hover" data-aos="fade-up" data-aos-delay="100">
+                    <div class="flex items-center mb-6">
+                        <img src="https://randomuser.me/api/portraits/women/44.jpg" class="w-12 h-12 rounded-full mr-4" alt="User">
+                        <div>
+                            <h4 class="font-bold">Sarah K.</h4>
+                            <div class="flex text-yellow-400">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-gray-400 italic">
+                        "I made $1,200 in my first week with zero trading experience! QuantumBot is a game changer."
+                    </p>
+                    <a href="trade.html" class="mt-4 inline-block text-purple-400 hover:text-purple-300 font-medium">
+                        <i class="fas fa-chart-line mr-1"></i> Try it yourself
+                    </a>
+                </div>
+                
+                <div class="bg-gray-800 rounded-xl p-8 card-hover" data-aos="fade-up" data-aos-delay="200">
+                    <div class="flex items-center mb-6">
+                        <img src="https://randomuser.me/api/portraits/men/32.jpg" class="w-12 h-12 rounded-full mr-4" alt="User">
+                        <div>
+                            <h4 class="font-bold">Michael T.</h4>
+                            <div class="flex text-yellow-400">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-gray-400 italic">
+                        "The risk-free first trade convinced me to try, now I'm earning passive income daily."
+                    </p>
+                    <a href="register.html" class="mt-4 inline-block text-purple-400 hover:text-purple-300 font-medium">
+                        <i class="fas fa-gift mr-1"></i> Claim free trade
+                    </a>
+                </div>
+                
+                <div class="bg-gray-800 rounded-xl p-8 card-hover" data-aos="fade-up" data-aos-delay="300">
+                    <div class="flex items-center mb-6">
+                        <img src="https://randomuser.me/api/portraits/women/68.jpg" class="w-12 h-12 rounded-full mr-4" alt="User">
+                        <div>
+                            <h4 class="font-bold">Jessica L.</h4>
+                            <div class="flex text-yellow-400">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star-half-alt"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-gray-400 italic">
+                        "Withdrawals arrive instantly. I use QuantumBot as my main income source now!"
+                    </p>
+                    <a href="trade.html" class="mt-4 inline-block text-purple-400 hover:text-purple-300 font-medium">
+                        <i class="fas fa-wallet mr-1"></i> Start earning
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="gradient-bg py-20">
+        <div class="container mx-auto px-4 text-center">
+            <div class="max-w-3xl mx-auto" data-aos="zoom-in">
+                <h2 class="text-3xl md:text-4xl font-bold mb-6">Ready to Start Earning with AI?</h2>
+                <p class="text-xl text-white/90 mb-10">
+                    Join thousands of traders who trust QuantumBot to grow their crypto portfolio automatically.
+                </p>
+                <div class="flex flex-col sm:flex-row justify-center gap-4">
+                    <a href="trade.html" class="px-8 py-4 bg-white hover:bg-gray-100 text-purple-600 rounded-lg font-bold text-lg flex items-center justify-center">
+                        <i class="fas fa-chart-line mr-3"></i> Trade Now
+                    </a>
+                    <a href="register.html" class="px-8 py-4 bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg font-bold text-lg flex items-center justify-center">
+                        <i class="fas fa-user-plus mr-3"></i> Register Free
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 py-12 border-t border-gray-800">
+        <div class="container mx-auto px-4">
+            <div class="grid md:grid-cols-4 gap-8 mb-8">
+                <div>
+                    <div class="flex items-center space-x-2 mb-4">
+                        <div class="w-10 h-10 rounded-lg bg-purple-600 flex items-center justify-center">
+                            <i class="fas fa-robot text-white text-xl"></i>
+                        </div>
+                        <span class="text-xl font-bold">Quantum<span class="gradient-text">Bot</span></span>
+                    </div>
+                    <p class="text-gray-400">
+                        AI-powered crypto trading bot that works for you 24/7 with a 90% success rate.
+                    </p>
+                    <a href="trade.html" class="mt-4 inline-block text-purple-400 hover:text-purple-300 font-medium">
+                        <i class="fas fa-arrow-right mr-1"></i> Start Trading
+                    </a>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-bold mb-4">Navigation</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#features" class="text-gray-400 hover:text-purple-400">Features</a></li>
+                        <li><a href="#how-it-works" class="text-gray-400 hover:text-purple-400">How It Works</a></li>
+                        <li><a href="#testimonials" class="text-gray-400 hover:text-purple-400">Testimonials</a></li>
+                        <li><a href="trade.html" class="text-gray-400 hover:text-purple-400">Trade Now</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-bold mb-4">Account</h4>
+                    <ul class="space-y-2">
+                        <li><a href="login.html" class="text-gray-400 hover:text-purple-400">Login</a></li>
+                        <li><a href="register.html" class="text-gray-400 hover:text-purple-400">Register</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-purple-400">Forgot Password</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-bold mb-4">Connect</h4>
+                    <div class="flex space-x-4 mb-4">
+                        <a href="#" class="w-10 h-10 bg-gray-800 hover:bg-purple-600 rounded-full flex items-center justify-center">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 bg-gray-800 hover:bg-purple-600 rounded-full flex items-center justify-center">
+                            <i class="fab fa-telegram"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 bg-gray-800 hover:bg-purple-600 rounded-full flex items-center justify-center">
+                            <i class="fab fa-discord"></i>
+                        </a>
+                    </div>
+                    <a href="trade.html" class="inline-block px-4 py-2 gradient-bg hover:opacity-90 rounded-lg font-medium">
+                        <i class="fas fa-play mr-1"></i> Live Demo
+                    </a>
+                </div>
+            </div>
+            
+            <div class="pt-8 border-t border-gray-800 text-center text-gray-500">
+                <p>© 2023 QuantumBot. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        // Initialize AOS animations
+        AOS.init({
+            duration: 800,
+            once: true
+        });
+
+        // Mobile menu toggle
+        document.addEventListener('DOMContentLoaded', () => {
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            
+            mobileMenuButton.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+                
+                // Toggle between hamburger and close icon
+                const icon = mobileMenuButton.querySelector('i');
+                if (mobileMenu.classList.contains('hidden')) {
+                    icon.classList.remove('fa-times');
+                    icon.classList.add('fa-bars');
+                } else {
+                    icon.classList.remove('fa-bars');
+                    icon.classList.add('fa-times');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

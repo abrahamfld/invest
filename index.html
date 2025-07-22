@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -81,11 +82,11 @@
         </div>
         
         <div class="hidden md:flex items-center space-x-6">
+            <a href="dashboard.html" class="px-3 py-2 text-gray-300 hover:text-purple-400 flex items-center">
+                <i class="fas fa-tachometer-alt mr-2"></i> Dashboard
+            </a>
             <a href="index.html" class="px-3 py-2 text-gray-300 hover:text-purple-400 flex items-center">
                 <i class="fas fa-chart-line mr-2"></i> Trading
-            </a>
-            <a href="transactions.html" class="px-3 py-2 text-gray-300 hover:text-purple-400 flex items-center">
-                <i class="fas fa-exchange-alt mr-2"></i> Transactions
             </a>
             <a href="deposit.html" class="px-3 py-2 text-gray-300 hover:text-purple-400 flex items-center">
                 <i class="fas fa-money-bill-wave mr-2"></i> Deposit
@@ -98,12 +99,6 @@
                 <i class="fas fa-user-circle text-xl text-purple-400"></i>
                 <span id="username-display">Guest</span>
             </div>
-            <button id="start-bot" class="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg font-medium flex items-center">
-                <i class="fas fa-play mr-2"></i> Start Bot
-            </button>
-            <button id="stop-bot" class="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg font-medium flex items-center hidden">
-                <i class="fas fa-stop mr-2"></i> Stop Bot
-            </button>
             <a href="logout.html" class="px-3 py-2 text-gray-300 hover:text-red-400 flex items-center">
                 <i class="fas fa-sign-out-alt mr-2"></i> Logout
             </a>
@@ -117,11 +112,11 @@
     <!-- Mobile Menu -->
     <div id="mobile-menu" class="md:hidden hidden bg-gray-800 border-b border-gray-700 px-6 py-3">
         <div class="flex flex-col space-y-4">
+            <a href="dashboard.html" class="px-3 py-2 text-gray-300 hover:text-purple-400 flex items-center">
+                <i class="fas fa-tachometer-alt mr-2"></i> Dashboard
+            </a>
             <a href="index.html" class="px-3 py-2 text-gray-300 hover:text-purple-400 flex items-center">
                 <i class="fas fa-chart-line mr-2"></i> Trading
-            </a>
-            <a href="transactions.html" class="px-3 py-2 text-gray-300 hover:text-purple-400 flex items-center">
-                <i class="fas fa-exchange-alt mr-2"></i> Transactions
             </a>
             <a href="deposit.html" class="px-3 py-2 text-gray-300 hover:text-purple-400 flex items-center">
                 <i class="fas fa-money-bill-wave mr-2"></i> Deposit
@@ -134,12 +129,6 @@
                 <i class="fas fa-user-circle text-xl text-purple-400"></i>
                 <span id="mobile-username-display">Guest</span>
             </div>
-            <button id="mobile-start-bot" class="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg font-medium flex items-center justify-center">
-                <i class="fas fa-play mr-2"></i> Start Bot
-            </button>
-            <button id="mobile-stop-bot" class="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg font-medium flex items-center justify-center hidden">
-                <i class="fas fa-stop mr-2"></i> Stop Bot
-            </button>
             <a href="logout.html" class="px-3 py-2 text-gray-300 hover:text-red-400 flex items-center">
                 <i class="fas fa-sign-out-alt mr-2"></i> Logout
             </a>
@@ -198,13 +187,23 @@
                             </div>
                         </div>
                     </div>
-                    <div class="mt-4 flex space-x-4">
-                        <button id="deposit-btn" class="px-6 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg font-medium flex items-center">
-                            <i class="fas fa-plus-circle mr-2"></i> Deposit
-                        </button>
-                        <button id="withdraw-btn" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg font-medium flex items-center">
-                            <i class="fas fa-hand-holding-usd mr-2"></i> Withdraw
-                        </button>
+                    <div class="mt-4 flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
+                        <div class="flex space-x-4">
+                            <button id="deposit-btn" class="px-6 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg font-medium flex items-center">
+                                <i class="fas fa-plus-circle mr-2"></i> Deposit
+                            </button>
+                            <button id="withdraw-btn" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg font-medium flex items-center">
+                                <i class="fas fa-hand-holding-usd mr-2"></i> Withdraw
+                            </button>
+                        </div>
+                        <div class="flex space-x-4">
+                            <button id="start-bot" class="px-6 py-2 bg-green-600 hover:bg-green-700 rounded-lg font-medium flex items-center flex-grow justify-center">
+                                <i class="fas fa-play mr-2"></i> Start Bot
+                            </button>
+                            <button id="stop-bot" class="px-6 py-2 bg-red-600 hover:bg-red-700 rounded-lg font-medium flex items-center flex-grow justify-center hidden">
+                                <i class="fas fa-stop mr-2"></i> Stop Bot
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -636,8 +635,6 @@
             botRunning = true;
             document.getElementById('start-bot').classList.add('hidden');
             document.getElementById('stop-bot').classList.remove('hidden');
-            document.getElementById('mobile-start-bot').classList.add('hidden');
-            document.getElementById('mobile-stop-bot').classList.remove('hidden');
             document.getElementById('bot-status').className = 'h-3 w-3 rounded-full bg-green-500 animate-pulse';
             document.getElementById('status-text').textContent = 'Active';
             document.getElementById('chart-overlay').classList.add('hidden');
@@ -700,8 +697,6 @@
             
             document.getElementById('start-bot').classList.remove('hidden');
             document.getElementById('stop-bot').classList.add('hidden');
-            document.getElementById('mobile-start-bot').classList.remove('hidden');
-            document.getElementById('mobile-stop-bot').classList.add('hidden');
             document.getElementById('bot-status').className = 'h-3 w-3 rounded-full bg-gray-500';
             document.getElementById('status-text').textContent = 'Inactive';
             document.querySelector('#btc-chart').parentElement.classList.remove('bot-active');
@@ -720,9 +715,7 @@
         }
 
         document.getElementById('start-bot').addEventListener('click', startBot);
-        document.getElementById('mobile-start-bot').addEventListener('click', startBot);
         document.getElementById('stop-bot').addEventListener('click', () => stopBot(false));
-        document.getElementById('mobile-stop-bot').addEventListener('click', () => stopBot(false));
 
         // Update accuracy display
         document.getElementById('accuracy').addEventListener('input', function() {
