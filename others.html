@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,7 +7,6 @@
     <title>QuantumBot | User Performance Search</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <style>
         .gradient-text {
@@ -51,6 +51,14 @@
         .search-result-card:hover {
             transform: scale(1.02);
             box-shadow: 0 10px 25px -5px rgba(110, 68, 255, 0.3);
+        }
+        .shake {
+            animation: shake 0.5s;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
         }
     </style>
 </head>
@@ -404,7 +412,7 @@
             }
         });
 
-        // Main search function
+        // Main search function - FIXED VERSION
         function searchUser() {
             const username = document.getElementById('username-search').value.trim();
             if (!username) return;
@@ -414,7 +422,7 @@
             document.getElementById('no-results').classList.add('hidden');
             document.getElementById('loading-state').classList.remove('hidden');
 
-            // Call your existing backend endpoint
+            // Call your backend endpoint
             fetch(`https://quantumbot-api.onrender.com/api/user/by-username/${username}`)
                 .then(response => {
                     if (!response.ok) {
@@ -422,18 +430,19 @@
                     }
                     return response.json();
                 })
-                .then(userData => {
+                .then(data => {
                     // Hide loading state
                     document.getElementById('loading-state').classList.add('hidden');
                     
-                    if (!userData || !userData.userData) {
+                    if (!data || !data.success) {
                         // Show no results
                         document.getElementById('no-results').classList.remove('hidden');
                         return;
                     }
 
-                    // Process and display user data
-                    displayUserPerformance(userData);
+                    // Process and display user data - FIXED TO MATCH API RESPONSE STRUCTURE
+                    const userData = data.user.userData || data.user; // Fallback to data.user if userData doesn't exist
+                    displayUserPerformance({ userData });
                 })
                 .catch(error => {
                     console.error('Error searching user:', error);
@@ -694,5 +703,43 @@
             });
         }
     </script>
+<!-- Code injected by live-server -->
+<script>
+	// <![CDATA[  <-- For SVG support
+	if ('WebSocket' in window) {
+		(function () {
+			function refreshCSS() {
+				var sheets = [].slice.call(document.getElementsByTagName("link"));
+				var head = document.getElementsByTagName("head")[0];
+				for (var i = 0; i < sheets.length; ++i) {
+					var elem = sheets[i];
+					var parent = elem.parentElement || head;
+					parent.removeChild(elem);
+					var rel = elem.rel;
+					if (elem.href && typeof rel != "string" || rel.length == 0 || rel.toLowerCase() == "stylesheet") {
+						var url = elem.href.replace(/(&|\?)_cacheOverride=\d+/, '');
+						elem.href = url + (url.indexOf('?') >= 0 ? '&' : '?') + '_cacheOverride=' + (new Date().valueOf());
+					}
+					parent.appendChild(elem);
+				}
+			}
+			var protocol = window.location.protocol === 'http:' ? 'ws://' : 'wss://';
+			var address = protocol + window.location.host + window.location.pathname + '/ws';
+			var socket = new WebSocket(address);
+			socket.onmessage = function (msg) {
+				if (msg.data == 'reload') window.location.reload();
+				else if (msg.data == 'refreshcss') refreshCSS();
+			};
+			if (sessionStorage && !sessionStorage.getItem('IsThisFirstTime_Log_From_LiveServer')) {
+				console.log('Live reload enabled.');
+				sessionStorage.setItem('IsThisFirstTime_Log_From_LiveServer', true);
+			}
+		})();
+	}
+	else {
+		console.error('Upgrade your browser. This Browser is NOT supported WebSocket for Live-Reloading.');
+	}
+	// ]]>
+</script>
 </body>
 </html>
