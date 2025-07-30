@@ -442,10 +442,10 @@
         function initializeTradingApp(userData) {
             // Set username with role badge if admin
             document.getElementById('username-display').innerHTML = userData.username + 
-                (userData.role === 'admin' ? ' <span class="text-xs bg-purple-600 text-white px-2 py-1 rounded-full">ADMIN</span>' : '');
+                (userData.role === 'admin' ? ' <span class="hidden text-xs bg-purple-600 text-white px-2 py-1 rounded-full">ADMIN</span>' : '');
             
             document.getElementById('mobile-username-display').innerHTML = userData.username + 
-                (userData.role === 'admin' ? ' <span class="text-xs bg-purple-600 text-white px-2 py-1 rounded-full">ADMIN</span>' : '');
+                (userData.role === 'admin' ? ' <span class="hidden text-xs bg-purple-600 text-white px-2 py-1 rounded-full">ADMIN</span>' : '');
             
             // Load initial balance
             document.getElementById('wallet-balance').textContent = `$${userData.balance.toFixed(2)}`;
