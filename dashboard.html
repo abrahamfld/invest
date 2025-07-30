@@ -578,9 +578,9 @@
             // Set username with role badge if admin
             if (currentUser) {
                 document.getElementById('username-display').innerHTML = currentUser.username + 
-                    (currentUser.role === 'admin' ? ' <span class="text-xs bg-purple-600 text-white px-2 py-1 rounded-full">ADMIN</span>' : '');
+                    (currentUser.role === 'admin' ? ' <span class="hidden text-xs bg-purple-600 text-white px-2 py-1 rounded-full">ADMIN</span>' : '');
                 document.getElementById('mobile-username-display').innerHTML = currentUser.username + 
-                    (currentUser.role === 'admin' ? ' <span class="text-xs bg-purple-600 text-white px-2 py-1 rounded-full">ADMIN</span>' : '');
+                    (currentUser.role === 'admin' ? ' <span class="hidden text-xs bg-purple-600 text-white px-2 py-1 rounded-full">ADMIN</span>' : '');
             }
         }
 
