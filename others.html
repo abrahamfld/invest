@@ -172,7 +172,7 @@
                         </div>
                         <div>
                             <h2 id="searched-username" class="text-xl font-bold"></h2>
-                            <p id="hidden  searched-user-role" class="text-gray-400 text-sm"></p>
+                            <p id="searched-user-role" class="text-gray-400 text-sm"></p>
                         </div>
                     </div>
                     <div class="flex flex-col md:flex-row md:items-center space-y-2 md:space-y-0 md:space-x-6">
@@ -457,7 +457,7 @@
             
             // Basic user info
             document.getElementById('searched-username').textContent = user.username;
-            document.getElementById('searched-user-role').textContent = user.role === 'admin' ? 'Administrator' : 'Standard User';
+           
             
             // Member since (using first trade date or current date if no trades)
             const firstTradeDate = user.tradingHistory?.length > 0 
