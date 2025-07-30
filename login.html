@@ -14,6 +14,222 @@
             color: transparent;
         }
     </style>
+
+    <!-- COPY AND PASTE THIS ENTIRE BLOCK -->
+<div class="language-switcher-container">
+  <button id="language-switcher-button">
+    <i class="fas fa-globe"></i>
+    <span id="current-language-label">English</span>
+    <i class="fas fa-chevron-down"></i>
+  </button>
+  
+  <div id="language-dropdown-menu" style="display: none;">
+    <div class="language-option" data-lang="en">
+      <span class="fi fi-us"></span> English
+    </div>
+    <div class="language-option" data-lang="hr">
+      <span class="fi fi-hr"></span> Hrvatski
+    </div>
+    <div class="language-option" data-lang="es">
+      <span class="fi fi-es"></span> Español
+    </div>
+    <div class="language-option" data-lang="fr">
+      <span class="fi fi-fr"></span> Français
+    </div>
+  </div>
+</div>
+
+<div id="google-translate-container"></div>
+
+<style>
+.language-switcher-container {
+  position: relative;
+  display: inline-block;
+  margin-left: 1rem;
+  z-index: 1000;
+}
+
+#language-switcher-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #334155;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+}
+
+#language-switcher-button:hover {
+  background-color: #f1f5f9;
+}
+
+#language-dropdown-menu {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  margin-top: 0.5rem;
+  width: 12rem;
+  background: white;
+  border-radius: 0.375rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+  z-index: 1001;
+}
+
+.language-option {
+  padding: 0.5rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.language-option:hover {
+  background-color: #f8fafc;
+}
+
+/* Hide Google Translate branding */
+.goog-te-gadget {
+  color: transparent !important;
+}
+.goog-te-gadget .goog-te-combo {
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  background-color: #f8fafc;
+  color: #334155;
+  font-size: 14px;
+}
+.goog-logo-link, .goog-te-gadget img {
+  display: none !important;
+}
+</style>
+
+<script>
+// Load required dependencies
+function loadDependencies() {
+  return new Promise((resolve) => {
+    if (document.querySelector('link[href*="font-awesome"]') && 
+        document.querySelector('link[href*="flag-icons"]')) {
+      resolve();
+      return;
+    }
+
+    const faLink = document.createElement('link');
+    faLink.rel = 'stylesheet';
+    faLink.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';
+    
+    const flagLink = document.createElement('link');
+    flagLink.rel = 'stylesheet';
+    flagLink.href = 'https://cdnjs.cloudflare.com/ajax/libs/flag-icons/6.6.6/css/flag-icons.min.css';
+    
+    document.head.appendChild(faLink);
+    document.head.appendChild(flagLink);
+    
+    // Give some time for CSS to load
+    setTimeout(resolve, 100);
+  });
+}
+
+// Initialize language switcher
+async function initLanguageSwitcher() {
+  await loadDependencies();
+  
+  const languages = {
+    'en': 'English',
+    'hr': 'Hrvatski',
+    'es': 'Español',
+    'fr': 'Français'
+  };
+
+  const button = document.getElementById('language-switcher-button');
+  const dropdown = document.getElementById('language-dropdown-menu');
+  const label = document.getElementById('current-language-label');
+  
+  // Set initial language from storage or default to English
+  const savedLang = localStorage.getItem('user_lang') || 'en';
+  label.textContent = languages[savedLang];
+  
+  // Toggle dropdown
+  button.addEventListener('click', (e) => {
+    e.stopPropagation();
+    dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+  });
+  
+  // Close dropdown when clicking outside
+  document.addEventListener('click', () => {
+    dropdown.style.display = 'none';
+  });
+  
+  // Handle language selection
+  document.querySelectorAll('.language-option').forEach(option => {
+    option.addEventListener('click', (e) => {
+      e.preventDefault();
+      const lang = option.getAttribute('data-lang');
+      changeLanguage(lang, languages[lang]);
+      dropdown.style.display = 'none';
+    });
+  });
+  
+  // Initialize Google Translate if needed
+  if (savedLang !== 'en') {
+    initGoogleTranslate(savedLang);
+  }
+}
+
+// Change language function
+function changeLanguage(lang, langName) {
+  localStorage.setItem('user_lang', lang);
+  document.getElementById('current-language-label').textContent = langName;
+  
+  if (lang === 'en') {
+    if (window.google && google.translate) {
+      google.translate.translateElement.getInstance().revert();
+    }
+  } else {
+    initGoogleTranslate(lang);
+  }
+}
+
+// Initialize Google Translate
+function initGoogleTranslate(lang) {
+  if (!window.google || !google.translate) {
+    const script = document.createElement('script');
+    script.src = `https://translate.google.com/translate_a/element.js?cb=onGoogleTranslateLoaded&hl=${lang}`;
+    document.head.appendChild(script);
+  } else {
+    setGoogleTranslateLanguage(lang);
+  }
+}
+
+// Google Translate callback
+window.onGoogleTranslateLoaded = function() {
+  new google.translate.TranslateElement({
+    pageLanguage: 'en',
+    includedLanguages: 'en,hr,es,fr',
+    layout: google.translate.TranslateElement.InlineLayout.HORIZONTAL,
+    autoDisplay: false
+  }, 'google-translate-container');
+  
+  const savedLang = localStorage.getItem('user_lang') || 'en';
+  setTimeout(() => setGoogleTranslateLanguage(savedLang), 500);
+};
+
+function setGoogleTranslateLanguage(lang) {
+  const select = document.querySelector('.goog-te-combo');
+  if (select) select.value = lang;
+}
+
+// Start the language switcher
+document.addEventListener('DOMContentLoaded', initLanguageSwitcher);
+</script>
+<!-- END OF COPY/PASTE BLOCK -->
 </head>
 <body class="bg-gray-900 text-gray-100 font-sans antialiased">
     <div class="min-h-screen flex items-center justify-center p-4">
