@@ -399,9 +399,9 @@
             
             // Set username with role badge if admin
             document.getElementById('username-display').innerHTML = user.username + 
-                (user.role === 'admin' ? ' <span class="text-xs bg-purple-600 text-white px-2 py-1 rounded-full">ADMIN</span>' : '');
+                (user.role === 'admin' ? ' <span class="hidden text-xs bg-purple-600 text-white px-2 py-1 rounded-full">ADMIN</span>' : '');
             document.getElementById('mobile-username-display').innerHTML = user.username + 
-                (user.role === 'admin' ? ' <span class="text-xs bg-purple-600 text-white px-2 py-1 rounded-full">ADMIN</span>' : '');
+                (user.role === 'admin' ? ' <span class="hidden text-xs bg-purple-600 text-white px-2 py-1 rounded-full">ADMIN</span>' : '');
         }
 
         // Search for user by username
